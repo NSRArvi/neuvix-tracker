@@ -35,7 +35,7 @@ export default function Sidebar({ user }: SidebarProps) {
 
   const navItems = [
     {
-      name: "Overview",
+      name: "Dashboard",
       href: "/dashboard",
       icon: LayoutDashboard,
       badge: null,
@@ -59,10 +59,10 @@ export default function Sidebar({ user }: SidebarProps) {
       badge: null,
     },
     {
-      name: "My Tasks",
+      name: "Tasks",
       href: "/dashboard/tasks",
       icon: CheckSquare,
-      badge: "12",
+      badge: null,
     },
     {
       name: "Teams",
@@ -90,9 +90,6 @@ export default function Sidebar({ user }: SidebarProps) {
               </span>
             </div>
           </Link>
-          <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-semibold">
-            PRO
-          </span>
         </div>
 
         {/* Navigation Links */}

@@ -6,13 +6,11 @@ import {
   ShieldCheck,
   ArrowRight,
   Loader2,
-  Sparkles,
   FolderKanban,
   Users,
   CheckCircle2,
   TrendingUp,
   DollarSign,
-  Zap,
 } from 'lucide-react'
 
 export default function AuthPage() {

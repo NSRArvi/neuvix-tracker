@@ -25,7 +25,30 @@ export async function createProject(data: any) {
   const supabase = await createClient();
   const { error, data: insertedData } = await supabase.from("projects").insert([data]).select().single();
   if (error) throw new Error(error.message);
+  
+  // Strip budget/payment info for the planner
+  const strippedTeams = insertedData.teams?.map((t: any) => ({ name: t.name, members: t.members }));
+  const strippedMilestones = insertedData.milestones?.map((m: any) => ({
+    name: m.name,
+    description: m.description,
+    status: m.status,
+    expected_complete_date: m.expected_complete_date
+  }));
+
+  // Create planner
+  await supabase.from("planners").insert([{
+    project_id: insertedData.id,
+    project_name: insertedData.name,
+    expected_delivery_date: insertedData.expected_delivery_date,
+    manager_id: insertedData.manager_id,
+    services: insertedData.services,
+    documents: insertedData.documents,
+    teams: strippedTeams,
+    milestones: strippedMilestones,
+  }]);
+
   revalidatePath("/dashboard/projects");
+  revalidatePath("/dashboard/planner");
   return insertedData;
 }
 
@@ -34,7 +57,29 @@ export async function updateProject(id: string, data: any) {
   const supabase = await createClient();
   const { error, data: updatedData } = await supabase.from("projects").update(data).eq("id", id).select().single();
   if (error) throw new Error(error.message);
+
+  // Strip budget/payment info for the planner
+  const strippedTeams = updatedData.teams?.map((t: any) => ({ name: t.name, members: t.members }));
+  const strippedMilestones = updatedData.milestones?.map((m: any) => ({
+    name: m.name,
+    description: m.description,
+    status: m.status,
+    expected_complete_date: m.expected_complete_date
+  }));
+
+  // Update planner
+  await supabase.from("planners").update({
+    project_name: updatedData.name,
+    expected_delivery_date: updatedData.expected_delivery_date,
+    manager_id: updatedData.manager_id,
+    services: updatedData.services,
+    documents: updatedData.documents,
+    teams: strippedTeams,
+    milestones: strippedMilestones,
+  }).eq("project_id", id);
+
   revalidatePath("/dashboard/projects");
+  revalidatePath("/dashboard/planner");
   revalidatePath(`/dashboard/projects/${id}`);
   revalidatePath(`/dashboard/projects/${id}/edit`);
   return updatedData;
