@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Edit2, Trash2, Shield } from "lucide-react";
+import { Plus, Edit2, Trash2, Shield, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  
   DialogFooter,
 } from "@/components/ui/dialog";
 import { addRoleAction, updateRoleAction, deleteRoleAction } from "../actions";
@@ -20,6 +19,37 @@ export function RoleList({ roles }: { roles: Role[] }) {
   const [isOpen, setIsOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [name, setName] = useState("");
+
+  const [alertDialog, setAlertDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    isConfirm: false,
+    onConfirm: () => {},
+  });
+
+  const showAlert = (title: string, message: string) => {
+    setAlertDialog({
+      isOpen: true,
+      title,
+      message,
+      isConfirm: false,
+      onConfirm: () => setAlertDialog(prev => ({ ...prev, isOpen: false })),
+    });
+  };
+
+  const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setAlertDialog({
+      isOpen: true,
+      title,
+      message,
+      isConfirm: true,
+      onConfirm: () => {
+        onConfirm();
+        setAlertDialog(prev => ({ ...prev, isOpen: false }));
+      },
+    });
+  };
 
   const openNew = () => {
     setEditId(null);
@@ -43,21 +73,46 @@ export function RoleList({ roles }: { roles: Role[] }) {
       }
       setIsOpen(false);
     } catch (err: unknown) {
-      alert((err as Error).message);
+      showAlert("Error", (err as Error).message);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this role?")) return;
-    try {
-      await deleteRoleAction(id);
-    } catch (err: unknown) {
-      alert((err as Error).message);
-    }
+  const handleDelete = (id: string) => {
+    showConfirm("Delete Role", "Are you sure you want to delete this role? This action cannot be undone.", async () => {
+      try {
+        await deleteRoleAction(id);
+      } catch (err: unknown) {
+        showAlert("Error", (err as Error).message);
+      }
+    });
   };
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <Dialog open={alertDialog.isOpen} onOpenChange={(open) => setAlertDialog(prev => ({ ...prev, isOpen: open }))}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className={`w-5 h-5 ${alertDialog.isConfirm ? 'text-amber-500' : 'text-red-500'}`} />
+              {alertDialog.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 text-slate-600">
+            {alertDialog.message}
+          </div>
+          <DialogFooter>
+            {alertDialog.isConfirm && (
+              <Button type="button" variant="outline" onClick={() => setAlertDialog(prev => ({ ...prev, isOpen: false }))}>
+                Cancel
+              </Button>
+            )}
+            <Button type="button" className={alertDialog.isConfirm ? "bg-red-600 hover:bg-red-700" : "bg-indigo-600 hover:bg-indigo-700"} onClick={alertDialog.onConfirm}>
+              {alertDialog.isConfirm ? "Confirm" : "OK"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="p-6 border-b border-slate-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Shield className="w-5 h-5 text-indigo-500" />
@@ -65,7 +120,6 @@ export function RoleList({ roles }: { roles: Role[] }) {
         </div>
         <Button size="sm" className="bg-indigo-600 hover:bg-indigo-500" onClick={openNew}><Plus className="w-4 h-4 mr-1" /> Add Role</Button>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          
           <DialogContent className="sm:max-w-[425px]">
             <form onSubmit={handleSave}>
               <DialogHeader>

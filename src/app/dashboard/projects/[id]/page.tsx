@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { ProjectDetailsClient } from "../_components/ProjectDetailsClient";
 import { notFound } from "next/navigation";
 
+import { getCurrentUserAccessLevel } from "@/lib/auth";
+
 export default async function ProjectViewPage({
   params,
 }: {
@@ -10,7 +12,8 @@ export default async function ProjectViewPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
-  
+  const accessLevel = await getCurrentUserAccessLevel();
+
   const [projectRes, membersRes] = await Promise.all([
     supabase
       .from("projects")
@@ -24,5 +27,5 @@ export default async function ProjectViewPage({
     notFound();
   }
 
-  return <ProjectDetailsClient project={projectRes.data} allMembers={membersRes.data || []} />;
+  return <ProjectDetailsClient project={projectRes.data} allMembers={membersRes.data || []} accessLevel={accessLevel} />;
 }

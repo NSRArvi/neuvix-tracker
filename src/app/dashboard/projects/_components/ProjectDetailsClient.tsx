@@ -54,7 +54,7 @@ const statusConfig: Record<string, { label: string; icon: React.ReactNode; class
   pending: { label: "Pending", icon: <Circle className="w-3.5 h-3.5" />, classes: "bg-slate-50 text-slate-600 border-slate-200" },
 };
 
-export function ProjectDetailsClient({ project, allMembers }: { project: Project, allMembers: { id: string; name: string }[] }) {
+export function ProjectDetailsClient({ project, allMembers, accessLevel = 'member' }: { project: Project, allMembers: { id: string; name: string }[], accessLevel?: string }) {
   // Payment Proof Modal State
 const [paymentModal, setPaymentModal] = useState<{
     open: boolean;
@@ -140,12 +140,14 @@ const [paymentModal, setPaymentModal] = useState<{
             </span>
           </div>
         </div>
-        <Link
-          href={`/dashboard/projects/${project.id}/edit`}
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors shrink-0"
-        >
-          <Edit2 className="w-4 h-4" /> Edit Project
-        </Link>
+        {accessLevel !== 'member' && (
+          <Link
+            href={`/dashboard/projects/${project.id}/edit`}
+            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors shrink-0"
+          >
+            <Edit2 className="w-4 h-4" /> Edit Project
+          </Link>
+        )}
       </div>
 
       <div className="space-y-6">
@@ -249,6 +251,29 @@ const [paymentModal, setPaymentModal] = useState<{
           </div>
         )}
 
+        {/* Documents */}
+        {(project.documents ?? []).filter(d => d.name || d.url).length > 0 && (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h2 className="text-sm font-semibold text-slate-800 flex items-center gap-2 mb-4">
+              <FileText className="w-4 h-4 text-indigo-500" /> Documents Links
+            </h2>
+            <div className="space-y-2">
+              {project.documents.filter(d => d.name || d.url).map((doc, i) => (
+                <a
+                  key={i}
+                  href={doc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group"
+                >
+                  <span className="text-sm font-medium text-slate-700 group-hover:text-indigo-700">{doc.name || doc.url}</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500" />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Milestones */}
         {(project.milestones ?? []).length > 0 && (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -334,37 +359,39 @@ const [paymentModal, setPaymentModal] = useState<{
                                       </span>
                                     )}
 
-                                    <div className="flex items-center gap-1.5 ml-auto">
-                                      {isPaid ? (
-                                        <>
-                                          <button
+                                    {accessLevel !== 'member' && (
+                                      <div className="flex items-center gap-1.5 ml-auto">
+                                        {isPaid ? (
+                                          <>
+                                            <button
+                                              type="button"
+                                              onClick={() => openPaymentModal(i, team.name, payable)}
+                                              className="text-[10px] text-slate-500 hover:text-indigo-600 underline font-medium"
+                                            >
+                                              Edit
+                                            </button>
+                                            <span className="text-slate-300">|</span>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleMarkPaymentDue(i, team.name)}
+                                              className="text-[10px] text-amber-600 hover:text-amber-700 font-medium"
+                                            >
+                                              Mark Due
+                                            </button>
+                                          </>
+                                        ) : (
+                                          <Button
                                             type="button"
+                                            size="xs"
+                                            variant="outline"
                                             onClick={() => openPaymentModal(i, team.name, payable)}
-                                            className="text-[10px] text-slate-500 hover:text-indigo-600 underline font-medium"
+                                            className="text-[10px] h-5 px-1.5 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
                                           >
-                                            Edit
-                                          </button>
-                                          <span className="text-slate-300">|</span>
-                                          <button
-                                            type="button"
-                                            onClick={() => handleMarkPaymentDue(i, team.name)}
-                                            className="text-[10px] text-amber-600 hover:text-amber-700 font-medium"
-                                          >
-                                            Mark Due
-                                          </button>
-                                        </>
-                                      ) : (
-                                        <Button
-                                          type="button"
-                                          size="xs"
-                                          variant="outline"
-                                          onClick={() => openPaymentModal(i, team.name, payable)}
-                                          className="text-[10px] h-5 px-1.5 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
-                                        >
-                                          Mark Paid
-                                        </Button>
-                                      )}
-                                    </div>
+                                            Mark Paid
+                                          </Button>
+                                        )}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               );
@@ -404,29 +431,6 @@ const [paymentModal, setPaymentModal] = useState<{
                     ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Documents */}
-        {(project.documents ?? []).filter(d => d.name || d.url).length > 0 && (
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-slate-800 flex items-center gap-2 mb-4">
-              <FileText className="w-4 h-4 text-indigo-500" /> Documents Links
-            </h2>
-            <div className="space-y-2">
-              {project.documents.filter(d => d.name || d.url).map((doc, i) => (
-                <a
-                  key={i}
-                  href={doc.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group"
-                >
-                  <span className="text-sm font-medium text-slate-700 group-hover:text-indigo-700">{doc.name || doc.url}</span>
-                  <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500" />
-                </a>
               ))}
             </div>
           </div>

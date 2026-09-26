@@ -67,10 +67,7 @@ export default function AuthPage() {
         {/* Center: Auth Box */}
         <div className="my-auto py-12 max-w-md w-full mx-auto">
           <div className="mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-xs font-semibold text-indigo-700 mb-3 shadow-2xs">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Workspace Sign In</span>
-            </div>
+            
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">
               Welcome back
             </h1>
@@ -169,14 +166,6 @@ export default function AuthPage() {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/15 rounded-full blur-[140px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-violet-600/15 rounded-full blur-[120px] pointer-events-none" />
 
-        {/* Header Tag */}
-        <div className="relative z-10 flex items-center justify-between">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-semibold text-indigo-200">
-            <Zap className="w-3.5 h-3.5 text-indigo-300" />
-            <span>Built for Modern Creative & Tech Agencies</span>
-          </div>
-          <span className="text-xs text-indigo-200/60 font-medium">v2.4 Pro</span>
-        </div>
 
         {/* App Showcase Content */}
         <div className="relative z-10 my-auto py-8 space-y-8 max-w-lg">

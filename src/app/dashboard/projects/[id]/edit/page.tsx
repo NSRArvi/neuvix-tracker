@@ -3,16 +3,24 @@ import { ProjectForm } from "../../_components/ProjectForm";
 import { createClient } from "@/lib/supabase/server";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+
+import { getCurrentUserAccessLevel } from "@/lib/auth";
 
 export default async function ProjectEditPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   const { id } = resolvedParams;
   const supabase = await createClient();
+  const accessLevel = await getCurrentUserAccessLevel();
+
+  if (accessLevel === 'member') {
+    redirect(`/dashboard/projects/${id}`);
+  }
   
-  const [projectRes, membersRes] = await Promise.all([
+  const [projectRes, membersRes, teamsRes] = await Promise.all([
     supabase.from("projects").select("*").eq("id", id).single(),
-    supabase.from("team_members").select("id, name"),
+    supabase.from("team_members").select("id, name, team_id"),
+    supabase.from("teams").select("id, name")
   ]);
 
   if (!projectRes.data) {
@@ -33,7 +41,7 @@ export default async function ProjectEditPage({ params }: { params: Promise<{ id
           Update the details for <span className="font-semibold text-foreground">{projectRes.data.name}</span>.
         </p>
       </div>
-      <ProjectForm initialProject={projectRes.data} allMembers={membersRes.data || []} />
+      <ProjectForm initialProject={projectRes.data} allMembers={membersRes.data || []} dbTeams={teamsRes.data || []} />
     </div>
   );
 }

@@ -54,9 +54,11 @@ interface MilestoneItem {
 export function ProjectForm({ 
   initialProject, 
   allMembers,
+  dbTeams = [],
 }: { 
   initialProject?: any; 
-  allMembers: { id: string; name: string }[];
+  allMembers: { id: string; name: string; team_id?: string }[];
+  dbTeams?: { id: string; name: string }[];
 }) {
   const router = useRouter();
 
@@ -795,15 +797,23 @@ export function ProjectForm({
                     <label className="block text-xs font-medium text-muted-foreground">
                       Team Name
                     </label>
-                    <Input
-                      type="text"
+                    <Select
                       value={team.name}
-                      onChange={(e) =>
-                        handleTeamChange(index, "name", e.target.value)
-                      }
-                      placeholder="e.g. Frontend Team"
-                      className="h-9 text-sm"
-                    />
+                      onValueChange={(val) => handleTeamChange(index, "name", val)}
+                    >
+                      <SelectTrigger className="h-9 text-sm">
+                        <span className={team.name ? "text-foreground" : "text-muted-foreground"}>
+                          {team.name || "Select Team"}
+                        </span>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {dbTeams.map((t) => (
+                          <SelectItem key={t.id} value={t.name}>
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-1">
                     <label className="block text-xs font-medium text-muted-foreground">
@@ -873,23 +883,34 @@ export function ProjectForm({
                         <CommandList>
                           <CommandEmpty>No member found.</CommandEmpty>
                           <CommandGroup>
-                            {allMembers.map((m) => (
-                              <CommandItem
-                                key={m.id}
-                                value={m.name}
-                                onSelect={() => addTeamMember(index, m.id)}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    team.members.includes(m.id)
-                                      ? "opacity-100 text-primary"
-                                      : "opacity-0",
-                                  )}
-                                />
-                                {m.name}
-                              </CommandItem>
-                            ))}
+                            {(() => {
+                              const selectedTeamData = dbTeams.find(t => t.name === team.name);
+                              const filteredMembers = selectedTeamData 
+                                ? allMembers.filter(m => m.team_id === selectedTeamData.id)
+                                : allMembers;
+                              
+                              if (filteredMembers.length === 0) {
+                                return <div className="p-2 text-sm text-muted-foreground text-center">No members in this team.</div>;
+                              }
+                              
+                              return filteredMembers.map((m) => (
+                                <CommandItem
+                                  key={m.id}
+                                  value={m.name}
+                                  onSelect={() => addTeamMember(index, m.id)}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      team.members.includes(m.id)
+                                        ? "opacity-100 text-primary"
+                                        : "opacity-0",
+                                    )}
+                                  />
+                                  {m.name}
+                                </CommandItem>
+                              ));
+                            })()}
                           </CommandGroup>
                         </CommandList>
                       </Command>
@@ -897,7 +918,6 @@ export function ProjectForm({
                   </Popover>
                 </div>
               </div>
-
               <Button
                 type="button"
                 variant="ghost"
@@ -912,26 +932,31 @@ export function ProjectForm({
           ))}
         </div>
       </div>
-      
-      <div className="pt-6 border-t border-border flex items-center justify-end gap-3">
-        <Link href={initialProject?.id ? `/dashboard/projects/${initialProject.id}` : "/dashboard/projects"}>
-          <Button variant="ghost" type="button" className="h-10 px-6">
-            Cancel
-          </Button>
-        </Link>
-        <Button type="submit" disabled={saving} className="h-10 px-6 gap-2">
-          {saving ? (
-            <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-          ) : (
-            <Save className="h-4 w-4" />
-          )}
-          {saving ? "Saving..." : initialProject?.id ? "Save Changes" : "Create Project"}
+
+      {/* Form Actions */}
+      <div className="flex items-center justify-end gap-3 pt-6 border-t border-border">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.back()}
+          disabled={saving}
+          className="h-10 px-5"
+        >
+          Cancel
+        </Button>
+        <Button 
+          type="submit" 
+          disabled={saving}
+          className="h-10 px-6 gap-2"
+        >
+          <Save className="h-4 w-4" />
+          {saving ? "Saving..." : initialProject ? "Save Changes" : "Create Project"}
         </Button>
       </div>
 
       <TeamPaymentModal
         open={paymentModal.open}
-        onOpenChange={(val) => setPaymentModal((prev) => ({ ...prev, open: val }))}
+        onOpenChange={(open) => setPaymentModal((prev) => ({ ...prev, open }))}
         teamName={paymentModal.teamName}
         amount={paymentModal.amount}
         initialPaidDate={paymentModal.paidDate}

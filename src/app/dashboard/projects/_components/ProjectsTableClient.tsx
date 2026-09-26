@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, Edit2, FolderKanban, Trash2 } from "lucide-react";
+import { Eye, Edit2, FolderKanban, Trash2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   Table,
@@ -11,6 +11,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { deleteProject } from "../actions";
 
 interface ProjectItem {
@@ -24,24 +32,80 @@ interface ProjectItem {
   manager?: { name: string } | null;
 }
 
-export function ProjectsTableClient({ projects, hasQuery }: { projects: ProjectItem[], hasQuery: boolean }) {
+export function ProjectsTableClient({ projects, hasQuery, accessLevel = 'member' }: { projects: ProjectItem[], hasQuery: boolean, accessLevel?: string }) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
-    setIsDeleting(id);
-    try {
-      await deleteProject(id);
-    } catch (err: unknown) {
-      alert("Failed to delete project: " + (err as Error).message);
-    } finally {
-      setIsDeleting(null);
-    }
+  const [alertDialog, setAlertDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    isConfirm: false,
+    onConfirm: () => {},
+  });
+
+  const showAlert = (title: string, message: string) => {
+    setAlertDialog({
+      isOpen: true,
+      title,
+      message,
+      isConfirm: false,
+      onConfirm: () => setAlertDialog(prev => ({ ...prev, isOpen: false })),
+    });
+  };
+
+  const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setAlertDialog({
+      isOpen: true,
+      title,
+      message,
+      isConfirm: true,
+      onConfirm: () => {
+        onConfirm();
+        setAlertDialog(prev => ({ ...prev, isOpen: false }));
+      },
+    });
+  };
+
+  const handleDelete = (id: string, name: string) => {
+    showConfirm("Delete Project", `Are you sure you want to delete "${name}"? This action cannot be undone.`, async () => {
+      setIsDeleting(id);
+      try {
+        await deleteProject(id);
+      } catch (err: unknown) {
+        showAlert("Error", "Failed to delete project: " + (err as Error).message);
+      } finally {
+        setIsDeleting(null);
+      }
+    });
   };
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <Dialog open={alertDialog.isOpen} onOpenChange={(open) => setAlertDialog(prev => ({ ...prev, isOpen: open }))}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className={`w-5 h-5 ${alertDialog.isConfirm ? 'text-amber-500' : 'text-red-500'}`} />
+              {alertDialog.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 text-slate-600">
+            {alertDialog.message}
+          </div>
+          <DialogFooter>
+            {alertDialog.isConfirm && (
+              <Button type="button" variant="outline" onClick={() => setAlertDialog(prev => ({ ...prev, isOpen: false }))}>
+                Cancel
+              </Button>
+            )}
+            <Button type="button" className={alertDialog.isConfirm ? "bg-red-600 hover:bg-red-700" : "bg-indigo-600 hover:bg-indigo-700"} onClick={alertDialog.onConfirm}>
+              {alertDialog.isConfirm ? "Confirm" : "OK"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Table>
         <TableHeader className="bg-slate-50/80">
           <TableRow>
@@ -50,7 +114,7 @@ export function ProjectsTableClient({ projects, hasQuery }: { projects: ProjectI
             <TableHead className="uppercase text-xs font-semibold tracking-wider text-slate-500">Budget</TableHead>
             <TableHead className="uppercase text-xs font-semibold tracking-wider text-slate-500">Manager</TableHead>
             <TableHead className="uppercase text-xs font-semibold tracking-wider text-slate-500">Status</TableHead>
-            <TableHead className="relative text-right"><span className="sr-only">Actions</span></TableHead>
+            <TableHead className="uppercase text-xs font-semibold tracking-wider text-slate-500">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="bg-white divide-y divide-slate-100">
@@ -93,8 +157,8 @@ export function ProjectsTableClient({ projects, hasQuery }: { projects: ProjectI
                     Active
                   </span>
                 </TableCell>
-                <TableCell className="whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex justify-end gap-2">
+                <TableCell className="whitespace-nowrap">
+                  <div className="flex gap-2">
                     <button 
                       onClick={() => router.push(`/dashboard/projects/${project.id}`)}
                       className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
@@ -102,21 +166,25 @@ export function ProjectsTableClient({ projects, hasQuery }: { projects: ProjectI
                     >
                       <Eye className="w-4 h-4" />
                     </button>
-                    <button 
-                      onClick={() => router.push(`/dashboard/projects/${project.id}/edit`)}
-                      className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
-                      title="Edit Project"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(project.id, project.name)}
-                      disabled={isDeleting === project.id}
-                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
-                      title="Delete Project"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {accessLevel !== 'member' && (
+                      <>
+                        <button 
+                          onClick={() => router.push(`/dashboard/projects/${project.id}/edit`)}
+                          className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
+                          title="Edit Project"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(project.id, project.name)}
+                          disabled={isDeleting === project.id}
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+                          title="Delete Project"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -127,3 +195,4 @@ export function ProjectsTableClient({ projects, hasQuery }: { projects: ProjectI
     </div>
   );
 }
+

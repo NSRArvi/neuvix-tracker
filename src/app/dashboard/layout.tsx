@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUserAccessLevel } from '@/lib/auth'
 import Sidebar from '@/components/dashboard/Sidebar'
 import Header from '@/components/dashboard/Header'
 
@@ -17,6 +18,8 @@ export default async function DashboardLayout({
   if (!user) {
     redirect('/auth')
   }
+
+  const accessLevel = await getCurrentUserAccessLevel()
 
   const userEmail = user.email ?? 'admin@neuvix.io'
   const userName =
@@ -38,7 +41,7 @@ export default async function DashboardLayout({
 
       {/* Right Content Area */}
       <div className="flex-1 ml-64 flex flex-col min-h-screen bg-white">
-        <Header />
+        <Header accessLevel={accessLevel} />
         <main className="p-8 flex-1">{children}</main>
       </div>
     </div>

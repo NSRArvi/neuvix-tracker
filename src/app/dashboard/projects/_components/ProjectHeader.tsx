@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Plus, Search } from "lucide-react";
 import { SearchInput } from "./SearchInput";
 
-export function ProjectHeader({ isLoading = false }: { isLoading?: boolean }) {
+export function ProjectHeader({ isLoading = false, accessLevel = 'member' }: { isLoading?: boolean; accessLevel?: string }) {
   return (
     <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div suppressHydrationWarning>
@@ -28,22 +28,24 @@ export function ProjectHeader({ isLoading = false }: { isLoading?: boolean }) {
           </Suspense>
         )}
         
-        {isLoading ? (
-          <button
-            disabled
-            className="inline-flex items-center gap-x-2 rounded-lg bg-indigo-600/50 px-4 py-2 text-sm font-semibold text-white shadow-sm shrink-0 cursor-not-allowed"
-          >
-            <Plus className="-ml-0.5 h-4 w-4" />
-            New Project
-          </button>
-        ) : (
-          <Link
-            href="/dashboard/projects/new"
-            className="inline-flex items-center gap-x-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors shrink-0"
-          >
-            <Plus className="-ml-0.5 h-4 w-4" />
-            New Project
-          </Link>
+        {accessLevel !== 'member' && (
+          isLoading ? (
+            <button
+              disabled
+              className="inline-flex items-center gap-x-2 rounded-lg bg-indigo-600/50 px-4 py-2 text-sm font-semibold text-white shadow-sm shrink-0 cursor-not-allowed"
+            >
+              <Plus className="-ml-0.5 h-4 w-4" />
+              New Project
+            </button>
+          ) : (
+            <Link
+              href="/dashboard/projects/new"
+              className="inline-flex items-center gap-x-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors shrink-0"
+            >
+              <Plus className="-ml-0.5 h-4 w-4" />
+              New Project
+            </Link>
+          )
         )}
       </div>
     </div>

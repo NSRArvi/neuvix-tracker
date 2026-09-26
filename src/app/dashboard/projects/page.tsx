@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { ProjectHeader } from "./_components/ProjectHeader";
 import { ProjectsTableClient } from "./_components/ProjectsTableClient";
 
+import { getCurrentUserAccessLevel } from "@/lib/auth";
+
 // Opt into dynamic rendering if needed, though searchParams does it.
 export const dynamic = "force-dynamic";
 
@@ -15,7 +17,18 @@ export default async function ProjectsPage({
   const query = resolvedParams?.query || "";
   
   const supabase = await createClient();
+  const accessLevel = await getCurrentUserAccessLevel();
   
+  // Get current member ID for filtering if they are a member
+  let currentMemberId: string | null = null;
+  if (accessLevel === 'member') {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.email) {
+      const { data: member } = await supabase.from('team_members').select('id').eq('email', user.email).single();
+      if (member) currentMemberId = member.id;
+    }
+  }
+
   let queryBuilder = supabase
     .from("projects")
     .select(`*, manager:team_members(name)`)
@@ -27,8 +40,15 @@ export default async function ProjectsPage({
 
   const { data: projects } = await queryBuilder;
 
-  // Manual filter for manager name since it's a joined table and .or() syntax is complex for relations
+  // Manual filter for manager name and member assignments
   const filteredProjects = projects ? projects.filter((project) => {
+    // 1. Filter by access level (members only see projects they are assigned to)
+    if (accessLevel === 'member' && currentMemberId) {
+      const isAssigned = project.teams?.some((team: any) => team.members?.includes(currentMemberId));
+      if (!isAssigned) return false;
+    }
+
+    // 2. Filter by search query
     if (!query) return true;
     const lowerQuery = query.toLowerCase();
     const managerName = project.manager?.name?.toLowerCase();
@@ -44,9 +64,9 @@ export default async function ProjectsPage({
   return (
     <div className="max-w-7xl mx-auto pb-12">
       {/* Header */}
-      <ProjectHeader />
+      <ProjectHeader accessLevel={accessLevel} />
 
-      <ProjectsTableClient projects={filteredProjects} hasQuery={!!query} />
+      <ProjectsTableClient projects={filteredProjects} hasQuery={!!query} accessLevel={accessLevel} />
     </div>
   );
 }

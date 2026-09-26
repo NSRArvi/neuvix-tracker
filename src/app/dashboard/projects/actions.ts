@@ -3,8 +3,17 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { getCurrentUserAccessLevel } from "@/lib/auth";
+
+async function checkAccess() {
+  const role = await getCurrentUserAccessLevel();
+  if (role === 'member') {
+    throw new Error("Unauthorized: Members cannot perform this action.");
+  }
+}
 
 export async function deleteProject(id: string) {
+  await checkAccess();
   const supabase = await createClient();
   const { error } = await supabase.from("projects").delete().eq("id", id);
   if (error) throw new Error(error.message);
@@ -12,6 +21,7 @@ export async function deleteProject(id: string) {
 }
 
 export async function createProject(data: any) {
+  await checkAccess();
   const supabase = await createClient();
   const { error, data: insertedData } = await supabase.from("projects").insert([data]).select().single();
   if (error) throw new Error(error.message);
@@ -20,6 +30,7 @@ export async function createProject(data: any) {
 }
 
 export async function updateProject(id: string, data: any) {
+  await checkAccess();
   const supabase = await createClient();
   const { error, data: updatedData } = await supabase.from("projects").update(data).eq("id", id).select().single();
   if (error) throw new Error(error.message);
@@ -30,6 +41,7 @@ export async function updateProject(id: string, data: any) {
 }
 
 export async function confirmTeamPayment(projectId: string, milestoneIndex: number, teamName: string, data: { paidDate: string; proofUrl: string }) {
+  await checkAccess();
   const supabase = await createClient();
   const { data: projectRes } = await supabase.from("projects").select("milestones").eq("id", projectId).single();
   if (!projectRes) throw new Error("Project not found");
@@ -57,6 +69,7 @@ export async function confirmTeamPayment(projectId: string, milestoneIndex: numb
 }
 
 export async function markPaymentDue(projectId: string, milestoneIndex: number, teamName: string) {
+  await checkAccess();
   const supabase = await createClient();
   const { data: projectRes } = await supabase.from("projects").select("milestones").eq("id", projectId).single();
   if (!projectRes) throw new Error("Project not found");
