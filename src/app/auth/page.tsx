@@ -24,22 +24,22 @@ export default function AuthPage() {
       setLoadingProvider(provider)
       setErrorMsg(null)
       const supabase = createClient()
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-          queryParams: provider === 'google' ? {
-            access_type: 'offline',
-            prompt: 'consent',
-          } : undefined,
         },
       })
 
       if (error) {
+        console.error('OAuth error:', error)
         setErrorMsg(error.message)
         setLoadingProvider(null)
+      } else if (data?.url) {
+        window.location.href = data.url
       }
     } catch (err: unknown) {
+      console.error('Unexpected auth error:', err)
       setErrorMsg(err instanceof Error ? err.message : 'An unexpected error occurred')
       setLoadingProvider(null)
     }
