@@ -75,8 +75,9 @@ export function PlannerDetailsClient({
       </Link>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-        {/* LEFT SIDE - Planner Informations */}
+        {/* LEFT SIDE  */}
         <div className="md:col-span-3 space-y-6">
+
           <div className="bg-white rounded-xl border border-slate-200 p-6">
             <h1 className="text-2xl font-bold text-slate-900 mb-6 leading-tight">
               {planner.project_name}
@@ -199,13 +200,10 @@ export function PlannerDetailsClient({
               )}
             </div>
           </div>
-        </div>
 
-        {/* RIGHT SIDE - Teams & Timeline */}
-        <div className="md:col-span-9 space-y-6">
           <div className="bg-white rounded-xl border border-slate-200 p-6">
             <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-6">
-              <Users className="w-5 h-5 text-indigo-600" /> Team Assignments
+              <Users className="w-5 h-5 text-indigo-600" /> Teams
             </h2>
 
             {planner.teams && planner.teams.length > 0 ? (
@@ -223,9 +221,6 @@ export function PlannerDetailsClient({
                         </h3>
                       </div>
                       <div className="p-4">
-                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-                          Assigned Members ({team.members?.length || 0})
-                        </p>
                         {team.members && team.members.length > 0 ? (
                           <div className="flex flex-wrap gap-2">
                             {team.members.map((memberId, mIdx) => (
@@ -317,6 +312,10 @@ export function PlannerDetailsClient({
             )}
           </div>
 
+        </div>
+
+        {/* RIGHT SIDE */}
+        <div className="md:col-span-9">
           <PlannerTasksKanban
             plannerId={planner.id}
             tasks={tasks}

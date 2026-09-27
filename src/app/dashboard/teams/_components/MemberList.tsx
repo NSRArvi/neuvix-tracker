@@ -12,6 +12,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DeleteConfirmModal } from "@/components/dashboard/DeleteConfirmModal";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -207,89 +208,56 @@ export function MemberList({
 
   return (
     <div className="max-w-7xl mx-auto overflow-hidden lg:col-span-3">
-      {/* Custom Alert/Confirm Dialog */}
-      <Dialog
-        open={alertDialog.isOpen}
-        onOpenChange={(open) =>
-          setAlertDialog((prev) => ({ ...prev, isOpen: open }))
-        }
-      >
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertCircle
-                className={`w-5 h-5 ${alertDialog.isConfirm ? "text-amber-500" : "text-red-500"}`}
-              />
-              {alertDialog.title}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4 text-slate-600">{alertDialog.message}</div>
-          <DialogFooter>
-            {alertDialog.isConfirm && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() =>
-                  setAlertDialog((prev) => ({ ...prev, isOpen: false }))
-                }
-              >
-                Cancel
-              </Button>
-            )}
-            <Button
-              type="button"
-              className={
-                alertDialog.isConfirm
-                  ? "bg-red-600 hover:bg-red-700"
-                  : "bg-indigo-600 hover:bg-indigo-700"
-              }
-              onClick={alertDialog.onConfirm}
-            >
-              {alertDialog.isConfirm ? "Confirm" : "OK"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={alertDialog.isOpen}
+        onClose={() => setAlertDialog((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={alertDialog.onConfirm}
+        title={alertDialog.title}
+        message={alertDialog.message}
+        isConfirm={alertDialog.isConfirm}
+      />
 
       <div className="p-6">
-        <PageHeader 
+        <PageHeader
           title="Teams & Members"
           subtitle="Manage your organization's teams, roles, and staff members."
           action={
             <div className="flex flex-col md:flex-row items-center gap-4">
-          {currentUserAccessLevel !== "member" && (
-            <div className="flex bg-slate-100 p-1 rounded-lg">
-              <button
-                onClick={() => setActiveTab("members")}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                  activeTab === "members"
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Team Members
-              </button>
-              <button
-                onClick={() => setActiveTab("auth")}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                  activeTab === "auth"
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Auth Users
-              </button>
+              {currentUserAccessLevel !== "member" && (
+                <div className="flex bg-slate-100 p-1 rounded-lg">
+                  <button
+                    onClick={() => setActiveTab("members")}
+                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                      activeTab === "members"
+                        ? "bg-white text-slate-900 shadow-sm"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    Team Members
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("auth")}
+                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                      activeTab === "auth"
+                        ? "bg-white text-slate-900 shadow-sm"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    Auth Users
+                  </button>
+                </div>
+              )}
+              {activeTab === "members" &&
+                currentUserAccessLevel !== "member" && (
+                  <Button
+                    className="bg-indigo-600 hover:bg-indigo-500"
+                    onClick={() => openNew()}
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Add Member
+                  </Button>
+                )}
             </div>
-          )}
-          {activeTab === "members" && currentUserAccessLevel !== "member" && (
-            <Button
-              className="bg-indigo-600 hover:bg-indigo-500"
-              onClick={() => openNew()}
-            >
-              <Plus className="w-4 h-4 mr-2" /> Add Member
-            </Button>
-          )}
-        </div>
           }
         />
       </div>

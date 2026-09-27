@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -25,6 +26,52 @@ interface SidebarProps {
 export default function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  useEffect(() => {
+    let channel: any;
+    const fetchUnread = async () => {
+      const supabase = createClient();
+      
+      // 1. Get user id from email
+      const { data: member } = await supabase.from('team_members').select('id').eq('email', user.email).single();
+      if (!member) return;
+
+      // 2. Fetch initial unread count
+      const { count } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('receiver_id', member.id)
+        .eq('is_read', false);
+        
+      setUnreadCount(count || 0);
+
+      // 3. Subscribe to realtime updates
+      channel = supabase.channel('sidebar-unread')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${member.id}` }, (payload) => {
+          if (!payload.new.is_read) {
+            setUnreadCount(prev => prev + 1);
+          }
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `receiver_id=eq.${member.id}` }, (payload) => {
+          if (payload.new.is_read && !payload.old.is_read) {
+            setUnreadCount(prev => Math.max(0, prev - 1));
+          }
+        })
+        .subscribe();
+    };
+
+    fetchUnread();
+
+    return () => {
+      if (channel) {
+        const supabase = createClient();
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [user.email]);
+
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -44,7 +91,7 @@ export default function Sidebar({ user }: SidebarProps) {
       name: "Messages",
       href: "/dashboard/messages",
       icon: MessageSquare,
-      badge: "3",
+      badge: unreadCount > 0 ? unreadCount.toString() : null,
     },
     {
       name: "Projects",

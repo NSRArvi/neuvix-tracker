@@ -49,9 +49,10 @@ type Project = {
 };
 
 const statusConfig: Record<string, { label: string; icon: React.ReactNode; classes: string }> = {
-  completed: { label: "Completed", icon: <CheckCircle2 className="w-3.5 h-3.5" />, classes: "bg-emerald-50 text-emerald-700 border-emerald-100" },
-  in_progress: { label: "In Progress", icon: <Clock className="w-3.5 h-3.5" />, classes: "bg-amber-50 text-amber-700 border-amber-100" },
-  pending: { label: "Pending", icon: <Circle className="w-3.5 h-3.5" />, classes: "bg-slate-50 text-slate-600 border-slate-200" },
+  "Completed": { label: "Completed", icon: <CheckCircle2 className="w-3.5 h-3.5" />, classes: "bg-emerald-50 text-emerald-700 border-emerald-100" },
+  "In Progress": { label: "In Progress", icon: <Clock className="w-3.5 h-3.5" />, classes: "bg-amber-50 text-amber-700 border-amber-100" },
+  "Planning": { label: "Planning", icon: <Circle className="w-3.5 h-3.5" />, classes: "bg-slate-50 text-slate-600 border-slate-200" },
+  "Invoice Sent": { label: "Invoice Sent", icon: <Circle className="w-3.5 h-3.5" />, classes: "bg-blue-50 text-blue-700 border-blue-100" },
 };
 
 export function ProjectDetailsClient({ project, allMembers, accessLevel = 'member' }: { project: Project, allMembers: { id: string; name: string }[], accessLevel?: string }) {
@@ -109,7 +110,7 @@ const [paymentModal, setPaymentModal] = useState<{
   );
 
   const completedMilestonesAmount = (project.milestones ?? [])
-    .filter((m) => m.status === "completed")
+    .filter((m) => m.status === "Completed")
     .reduce((sum, m) => {
       const pct = parseFloat(m.payment_percent) || 0;
       return sum + (totalBudget * (pct / 100));
@@ -286,7 +287,7 @@ const [paymentModal, setPaymentModal] = useState<{
             <div className="divide-y divide-slate-100">
               {project.milestones.map((m, i) => {
                 const amount = (project.budget * (parseFloat(m.payment_percent) || 0) / 100).toFixed(2);
-                const cfg = statusConfig[m.status] ?? statusConfig.pending;
+                const cfg = statusConfig[m.status] ?? statusConfig["Planning"];
                 return (
                   <div key={i} className="px-6 py-4 flex items-start gap-4">
                     <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">

@@ -18,6 +18,8 @@ import {
   X,
   FileCheck,
   Check,
+  Send,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -40,7 +42,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { createProject, updateProject } from "../actions";
+import { createProject, updateProject, sendMilestoneInvoice } from "../actions";
 
 interface MilestoneItem {
   name: string;
@@ -89,7 +91,7 @@ export function ProjectForm({
         description: "",
         payment_percent: "",
         expected_complete_date: "",
-        status: "pending",
+        status: "Planning",
         team_payments: {},
       },
     ]
@@ -99,6 +101,23 @@ export function ProjectForm({
   ]);
 
   const [saving, setSaving] = useState(false);
+  const [sendingInvoiceIndex, setSendingInvoiceIndex] = useState<number | null>(null);
+
+  const handleSendInvoice = async (index: number, amount: string) => {
+    if (!initialProject?.id) return;
+    try {
+      setSendingInvoiceIndex(index);
+      await sendMilestoneInvoice(initialProject.id, index, amount);
+      alert("Invoice sent successfully!");
+      const newMilestones = [...milestones];
+      newMilestones[index].status = "Invoice Sent";
+      setMilestones(newMilestones);
+    } catch (error: any) {
+      alert(error.message || "Failed to send invoice");
+    } finally {
+      setSendingInvoiceIndex(null);
+    }
+  };
 
   // Handlers for Services
   const handleServiceToggle = (service: string) => {
@@ -154,7 +173,7 @@ export function ProjectForm({
         description: "",
         payment_percent: "",
         expected_complete_date: "",
-        status: "pending",
+        status: "Planning",
         team_payments: {},
       },
     ]);
@@ -570,8 +589,27 @@ export function ProjectForm({
                   <h3 className="text-sm font-semibold text-foreground">
                     Milestone {index + 1}
                   </h3>
-                  <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                    Payable: ${amount}
+                  <div className="flex items-center gap-3">
+                    <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                      Payable: ${amount}
+                    </div>
+                    {initialProject?.id && milestone.status !== "In Progress" && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleSendInvoice(index, amount)}
+                        disabled={sendingInvoiceIndex === index}
+                        className="h-7 text-xs"
+                      >
+                        {sendingInvoiceIndex === index ? (
+                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                        ) : (
+                          <Send className="w-3 h-3 mr-1" />
+                        )}
+                        {milestone.status === "Invoice Sent" ? "Resend Invoice" : "Send Invoice"}
+                      </Button>
+                    )}
                   </div>
                 </div>
 
@@ -658,9 +696,10 @@ export function ProjectForm({
                           {milestone.status ? milestone.status.charAt(0).toUpperCase() + milestone.status.slice(1).replace("_", " ") : <span className="text-muted-foreground">Status</span>}
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="in_progress">In Progress</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="Planning">Planning</SelectItem>
+                          <SelectItem value="Invoice Sent">Invoice Sent</SelectItem>
+                          <SelectItem value="In Progress">In Progress</SelectItem>
+                          <SelectItem value="Completed">Completed</SelectItem>
                         </SelectContent>
                       </Select>
                   </div>
