@@ -24,7 +24,12 @@ interface PlannerItem {
   teams: { name: string; budget: string; members: string[] }[];
 }
 
-export function PlannerClient({ planners }: { planners: PlannerItem[] }) {
+interface PlannerClientProps {
+  planners: PlannerItem[];
+  accessLevel?: "admin" | "manager" | "member" | string;
+}
+
+export function PlannerClient({ planners, accessLevel }: PlannerClientProps) {
   const router = useRouter();
 
   return (

@@ -38,11 +38,13 @@ export function PlannerDetailsClient({
   tasks = [],
   allMembers,
   accessLevel,
+  currentUserId,
 }: {
   planner: Planner;
   tasks?: any[];
   allMembers: { id: string; name: string }[];
   accessLevel: string;
+  currentUserId: string;
 }) {
   const [docsModalOpen, setDocsModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +79,7 @@ export function PlannerDetailsClient({
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
         {/* LEFT SIDE  */}
         <div className="md:col-span-3 space-y-6">
-
+          {/* project informations  */}
           <div className="bg-white rounded-xl border border-slate-200 p-6">
             <h1 className="text-2xl font-bold text-slate-900 mb-6 leading-tight">
               {planner.project_name}
@@ -200,60 +202,57 @@ export function PlannerDetailsClient({
               )}
             </div>
           </div>
-
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-6">
-              <Users className="w-5 h-5 text-indigo-600" /> Teams
+          {/* team informations  */}
+          <div className="bg-white rounded-xl border border-slate-200 p-5">
+            <h2 className="text-sm font-semibold text-slate-800 flex items-center gap-2 mb-4">
+              <Users className="w-4 h-4 text-indigo-500" /> Teams
             </h2>
 
             {planner.teams && planner.teams.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-3">
                 {planner.teams
                   .filter((t) => t.name)
                   .map((team, tIdx) => (
                     <div
                       key={tIdx}
-                      className="border border-slate-100 rounded-xl bg-slate-50/50 overflow-hidden"
+                      className="flex items-center gap-3"
                     >
-                      <div className="p-4 border-b border-slate-100 bg-white flex items-center justify-between">
-                        <h3 className="font-bold text-slate-800">
-                          {team.name}
-                        </h3>
-                      </div>
-                      <div className="p-4">
-                        {team.members && team.members.length > 0 ? (
-                          <div className="flex flex-wrap gap-2">
-                            {team.members.map((memberId, mIdx) => (
-                              <span
+                      <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md shrink-0">
+                        {team.name}
+                      </span>
+                      {team.members && team.members.length > 0 ? (
+                        <div className="flex items-center -space-x-2">
+                          {team.members.slice(0, 5).map((memberId, mIdx) => {
+                            const name = getMemberName(memberId);
+                            return (
+                              <div
                                 key={mIdx}
-                                className="inline-flex items-center px-2.5 py-1 rounded-full bg-white border border-slate-200 text-slate-700 text-xs font-medium shadow-xs"
+                                title={name}
+                                className="px-2.5 py-1 rounded-md bg-indigo-100 text-indigo-700 text-[10px] font-bold flex items-center justify-center border-2 border-white"
                               >
-                                {getMemberName(memberId)}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-slate-400 italic">
-                            No members assigned.
-                          </p>
-                        )}
-                      </div>
+                                {name}
+                              </div>
+                            );
+                          })}
+                          {team.members.length > 5 && (
+                            <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center border-2 border-white ring-1 ring-slate-100">
+                              +{team.members.length - 5}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">No members</span>
+                      )}
                     </div>
                   ))}
               </div>
             ) : (
-              <div className="text-center py-12 border-2 border-dashed border-slate-100 rounded-xl">
-                <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <h3 className="text-slate-800 font-medium">
-                  No Teams Assigned
-                </h3>
-                <p className="text-slate-500 text-sm mt-1">
-                  There are no teams working on this project plan yet.
-                </p>
-              </div>
+              <p className="text-xs text-slate-400 py-3">
+                No teams assigned yet.
+              </p>
             )}
           </div>
-
+          {/* milestone informations  */}
           <div className="bg-white rounded-xl border border-slate-200 p-6">
             <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-6">
               <Calendar className="w-5 h-5 text-indigo-600" /> Project Timeline
@@ -311,7 +310,6 @@ export function PlannerDetailsClient({
               </p>
             )}
           </div>
-
         </div>
 
         {/* RIGHT SIDE */}
@@ -320,7 +318,9 @@ export function PlannerDetailsClient({
             plannerId={planner.id}
             tasks={tasks}
             teams={planner.teams || []}
+            allMembers={allMembers}
             accessLevel={accessLevel}
+            currentUserId={currentUserId}
           />
         </div>
       </div>

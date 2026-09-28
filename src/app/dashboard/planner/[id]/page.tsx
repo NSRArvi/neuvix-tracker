@@ -50,19 +50,32 @@ export default async function PlannerDetailsPage({
   // Fetch all members for name mapping on the right side
   const { data: allMembers } = await supabase.from("team_members").select("id, name");
 
-  // Fetch tasks
+  // Fetch tasks with subtasks
   const { data: tasks } = await supabase
     .from("planner_tasks")
-    .select("*")
+    .select("*, task_subtasks(*)")
     .eq("planner_id", id)
     .order("created_at", { ascending: true });
+
+  // Get current user's team_member ID for comments
+  const { data: { user: authUser } } = await supabase.auth.getUser();
+  let currentUserId = "";
+  if (authUser?.email) {
+    const { data: currentMember } = await supabase
+      .from("team_members")
+      .select("id")
+      .eq("email", authUser.email)
+      .single();
+    if (currentMember) currentUserId = currentMember.id;
+  }
 
   return (
     <PlannerDetailsClient 
       planner={planner} 
       tasks={tasks || []}
       allMembers={allMembers || []} 
-      accessLevel={accessLevel} 
+      accessLevel={accessLevel}
+      currentUserId={currentUserId}
     />
   );
 }

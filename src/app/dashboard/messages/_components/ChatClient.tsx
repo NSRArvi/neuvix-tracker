@@ -9,7 +9,7 @@ interface TeamMember {
   id: string;
   name: string;
   email: string;
-  roles?: { name: string };
+  roles?: { name: string } | { name: string }[] | null;
 }
 
 interface Message {
@@ -48,40 +48,47 @@ export function ChatClient({ currentUser, members, initialMessages }: ChatClient
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
-        (payload) => {
+        (payload: any) => {
           const newMessage = payload.new as Message;
           // Only add to state if it involves the current user
           if (
             newMessage.sender_id === currentUser.id ||
             newMessage.receiver_id === currentUser.id
           ) {
-            setMessages((prev) => {
-              if (prev.some(m => m.id === newMessage.id)) return prev;
-              
-              if (newMessage.sender_id === currentUser.id) {
-                const optIndex = prev.findIndex(m => m.id.startsWith("temp-") && m.content === newMessage.content);
-                if (optIndex !== -1) {
-                  const next = [...prev];
-                  next[optIndex] = newMessage;
-                  return next;
-                }
+          const isFromActive =
+            newMessage.sender_id === activeMemberRef.current &&
+            newMessage.receiver_id === currentUser.id;
+
+          const messageToAdd = isFromActive ? { ...newMessage, is_read: true } : newMessage;
+
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === messageToAdd.id)) return prev;
+
+            if (messageToAdd.sender_id === currentUser.id) {
+              const optIndex = prev.findIndex(
+                (m) => m.id.startsWith("temp-") && m.content === messageToAdd.content
+              );
+              if (optIndex !== -1) {
+                const next = [...prev];
+                next[optIndex] = messageToAdd;
+                return next;
               }
-              
-              // If the message is from the currently active chat, mark it as read immediately
-              if (newMessage.sender_id === activeMemberRef.current && newMessage.receiver_id === currentUser.id) {
-                newMessage.is_read = true;
-                markMessagesAsRead(activeMemberRef.current, currentUser.id).catch(console.error);
-              }
-              
-              return [...prev, newMessage];
-            });
+            }
+
+            return [...prev, messageToAdd];
+          });
+
+          // Trigger mark as read side-effect OUTSIDE the setState updater function
+          if (isFromActive && activeMemberRef.current) {
+            markMessagesAsRead(activeMemberRef.current, currentUser.id).catch(console.error);
           }
         }
-      )
-      .on(
+      }
+    )
+    .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "messages" },
-        (payload) => {
+        (payload: any) => {
           const updatedMessage = payload.new as Message;
           setMessages((prev) =>
             prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m))
@@ -107,7 +114,7 @@ export function ChatClient({ currentUser, members, initialMessages }: ChatClient
         const state = presenceChannel.presenceState();
         setOnlineUsers(Object.keys(state));
       })
-      .subscribe(async (status) => {
+      .subscribe(async (status: any) => {
         if (status === 'SUBSCRIBED') {
           await presenceChannel.track({ online_at: new Date().toISOString() });
         }
@@ -121,7 +128,7 @@ export function ChatClient({ currentUser, members, initialMessages }: ChatClient
     typingChannelRef.current = typingChannel;
 
     typingChannel
-      .on('broadcast', { event: 'typing' }, (payload) => {
+      .on('broadcast', { event: 'typing' }, (payload: any) => {
         const { sender_id, receiver_id } = payload.payload;
         if (receiver_id === currentUser.id) {
           setTypingMembers((prev) => {
@@ -231,6 +238,14 @@ export function ChatClient({ currentUser, members, initialMessages }: ChatClient
     ).length;
   };
 
+  const getMemberRoleName = (member: TeamMember) => {
+    if (!member.roles) return "Member";
+    if (Array.isArray(member.roles)) {
+      return member.roles[0]?.name || "Member";
+    }
+    return member.roles.name || "Member";
+  };
+
   return (
     <div className="flex w-full h-full overflow-hidden">
       {/* Sidebar - Users List */}
@@ -287,7 +302,7 @@ export function ChatClient({ currentUser, members, initialMessages }: ChatClient
                           </h3>
                         </div>
                         <p className="text-xs text-slate-500 truncate">
-                          {member.roles?.name || "Member"}
+                          {getMemberRoleName(member)}
                         </p>
                       </div>
                     </button>
@@ -317,7 +332,7 @@ export function ChatClient({ currentUser, members, initialMessages }: ChatClient
                 </div>
                 <div>
                   <h2 className="text-sm font-bold text-slate-900">{activeMember.name}</h2>
-                  <p className="text-xs text-slate-500">{activeMember.roles?.name || "Member"}</p>
+                  <p className="text-xs text-slate-500">{getMemberRoleName(activeMember)}</p>
                 </div>
               </div>
             </div>

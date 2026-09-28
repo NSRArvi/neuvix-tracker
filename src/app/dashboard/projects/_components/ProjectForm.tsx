@@ -133,7 +133,7 @@ export function ProjectForm({
     setTeams([...teams, { name: "", budget: "", members: [] }]);
   const removeTeam = (index: number) =>
     setTeams(teams.filter((_: any, i: number) => i !== index));
-  const handleTeamChange = (index: number, field: string, value: string) => {
+  const handleTeamChange = (index: number, field: string, value: string | any) => {
     const newTeams = [...teams];
     newTeams[index] = { ...newTeams[index], [field]: value };
     setTeams(newTeams);
@@ -838,7 +838,7 @@ export function ProjectForm({
                     </label>
                     <Select
                       value={team.name}
-                      onValueChange={(val) => handleTeamChange(index, "name", val)}
+                      onValueChange={(val) => handleTeamChange(index, "name", val as string)}
                     >
                       <SelectTrigger className="h-9 text-sm">
                         <span className={team.name ? "text-foreground" : "text-muted-foreground"}>

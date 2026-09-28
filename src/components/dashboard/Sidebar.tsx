@@ -30,43 +30,78 @@ export default function Sidebar({ user }: SidebarProps) {
   const [unreadCount, setUnreadCount] = useState<number>(0);
 
   useEffect(() => {
-    let channel: any;
+    const supabase = createClient();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let isMounted = true;
+
     const fetchUnread = async () => {
-      const supabase = createClient();
-      
       // 1. Get user id from email
-      const { data: member } = await supabase.from('team_members').select('id').eq('email', user.email).single();
-      if (!member) return;
+      const { data: member } = await supabase
+        .from("team_members")
+        .select("id")
+        .eq("email", user.email)
+        .single();
+
+      if (!member || !isMounted) return;
 
       // 2. Fetch initial unread count
       const { count } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('receiver_id', member.id)
-        .eq('is_read', false);
-        
-      setUnreadCount(count || 0);
+        .from("messages")
+        .select("*", { count: "exact", head: true })
+        .eq("receiver_id", member.id)
+        .eq("is_read", false);
 
-      // 3. Subscribe to realtime updates
-      channel = supabase.channel('sidebar-unread')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${member.id}` }, (payload) => {
-          if (!payload.new.is_read) {
-            setUnreadCount(prev => prev + 1);
+      if (isMounted) {
+        setUnreadCount(count || 0);
+      }
+
+      // 3. Subscribe to realtime updates with a user-scoped channel name
+      const channelName = `sidebar-unread-${member.id}`;
+      const existingChannel = supabase.getChannels().find((c) => c.topic === `realtime:${channelName}`);
+      if (existingChannel) {
+        await supabase.removeChannel(existingChannel);
+      }
+
+      if (!isMounted) return;
+
+      channel = supabase
+        .channel(channelName)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "messages",
+            filter: `receiver_id=eq.${member.id}`,
+          },
+          (payload: any) => {
+            if (!payload.new.is_read) {
+              setUnreadCount((prev) => prev + 1);
+            }
           }
-        })
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `receiver_id=eq.${member.id}` }, (payload) => {
-          if (payload.new.is_read && !payload.old.is_read) {
-            setUnreadCount(prev => Math.max(0, prev - 1));
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "messages",
+            filter: `receiver_id=eq.${member.id}`,
+          },
+          (payload: any) => {
+            if (payload.new.is_read && !payload.old.is_read) {
+              setUnreadCount((prev) => Math.max(0, prev - 1));
+            }
           }
-        })
+        )
         .subscribe();
     };
 
     fetchUnread();
 
     return () => {
+      isMounted = false;
       if (channel) {
-        const supabase = createClient();
         supabase.removeChannel(channel);
       }
     };

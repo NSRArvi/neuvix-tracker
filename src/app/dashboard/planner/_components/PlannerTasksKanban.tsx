@@ -1,29 +1,20 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Plus,
-  Trash2,
-  Calendar,
-  Users,
-  AlertCircle,
-  Edit2,
-} from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DeleteConfirmModal } from "@/components/dashboard/DeleteConfirmModal";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  createPlannerTask,
-  updatePlannerTask,
-  updatePlannerTaskStatus,
-  deletePlannerTask,
-} from "../actions";
+import { TaskCard } from "./TaskCard";
+import { TaskFormModal } from "./TaskFormModal";
+import { TaskDetailPanel } from "./TaskDetailPanel";
+import { updatePlannerTaskStatus, deletePlannerTask } from "../actions";
+
+interface Subtask {
+  id: string;
+  task_id: string;
+  title: string;
+  is_completed: boolean;
+}
 
 interface Task {
   id: string;
@@ -33,125 +24,69 @@ interface Task {
   due_date?: string | null;
   status: string;
   assigned_team?: string | null;
+  assigned_member?: string | null;
+  priority: string;
+  labels: string[];
+  task_subtasks?: Subtask[];
 }
 
 interface PlannerTasksKanbanProps {
   plannerId: string;
   tasks: Task[];
-  teams: { name: string }[];
+  teams: { name: string; members: string[] }[];
+  allMembers: { id: string; name: string }[];
   accessLevel: string;
+  currentUserId: string;
 }
 
 const COLUMNS = [
-  { id: "pending", label: "Pending", color: "bg-slate-100" },
-  { id: "in_progress", label: "In Progress", color: "bg-blue-50" },
-  { id: "completed", label: "Completed", color: "bg-emerald-50" },
+  { id: "pending", label: "Pending", color: "bg-yellow-50", accent: "border-yellow-100" },
+  { id: "in_progress", label: "In Progress", color: "bg-blue-50", accent: "border-blue-200" },
+  { id: "completed", label: "Completed", color: "bg-emerald-50", accent: "border-emerald-200" },
 ];
 
 export function PlannerTasksKanban({
   plannerId,
   tasks,
   teams,
+  allMembers,
   accessLevel,
+  currentUserId,
 }: PlannerTasksKanbanProps) {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Optimistic UI state
+  const [optimisticTasks, setOptimisticTasks] = useState<Task[]>(tasks || []);
+  React.useEffect(() => { setOptimisticTasks(tasks || []); }, [tasks]);
 
-  // New/Edit task form state
-  const [taskForm, setTaskForm] = useState({
-    title: "",
-    description: "",
-    due_date: "",
-    assigned_team: "",
-  });
+  // Form Modal
+  const [formModalOpen, setFormModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  // Delete modal state
-  const [deleteModal, setDeleteModal] = useState({
-    isOpen: false,
-    taskId: "",
-    taskTitle: "",
-  });
+  // Detail Panel
+  const [detailTask, setDetailTask] = useState<Task | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  // Delete Modal
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, taskId: "", taskTitle: "" });
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Optimistic UI state for Drag and Drop
-  const [optimisticTasks, setOptimisticTasks] = useState<Task[]>(tasks || []);
+  // Drag state
+  const [dragOverCol, setDragOverCol] = useState<string | null>(null);
 
-  // Sync optimistic state when real tasks update
-  React.useEffect(() => {
-    setOptimisticTasks(tasks || []);
-  }, [tasks]);
+  // ─── Handlers ──────────────────────────────────────────
 
   const openCreateModal = () => {
-    setEditingTaskId(null);
-    setTaskForm({
-      title: "",
-      description: "",
-      due_date: "",
-      assigned_team: "",
-    });
-    setError(null);
-    setModalOpen(true);
+    setEditingTask(null);
+    setFormModalOpen(true);
   };
 
   const openEditModal = (task: Task) => {
-    setEditingTaskId(task.id);
-    setTaskForm({
-      title: task.title,
-      description: task.description || "",
-      due_date: task.due_date ? task.due_date.split("T")[0] : "", // ensure it's YYYY-MM-DD
-      assigned_team: task.assigned_team || "",
-    });
-    setError(null);
-    setModalOpen(true);
+    setEditingTask(task);
+    setFormModalOpen(true);
   };
 
-  const handleSaveTask = async () => {
-    if (!taskForm.title.trim()) {
-      setError("Task title is required");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      const payload = {
-        title: taskForm.title,
-        description: taskForm.description || null,
-        due_date: taskForm.due_date || null,
-        assigned_team: taskForm.assigned_team || null,
-      };
-
-      if (editingTaskId) {
-        await updatePlannerTask(plannerId, editingTaskId, payload);
-      } else {
-        await createPlannerTask(plannerId, payload);
-      }
-
-      setModalOpen(false);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleStatusChange = async (
-    taskId: string,
-    newStatus: "pending" | "in_progress" | "completed",
-  ) => {
-    // Optimistic update
-    setOptimisticTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)),
-    );
-    try {
-      await updatePlannerTaskStatus(plannerId, taskId, newStatus);
-    } catch (err: any) {
-      alert("Failed to update task: " + err.message);
-      // Revert optimistic update
-      setOptimisticTasks(tasks);
-    }
+  const openDetailPanel = (task: Task) => {
+    setDetailTask(task);
+    setDetailOpen(true);
   };
 
   const confirmDelete = (taskId: string, title: string) => {
@@ -170,27 +105,55 @@ export function PlannerTasksKanban({
     }
   };
 
-  // --- Drag and Drop Handlers ---
+  const handleStatusChange = async (taskId: string, newStatus: string) => {
+    setOptimisticTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
+    );
+    try {
+      await updatePlannerTaskStatus(plannerId, taskId, newStatus as any);
+    } catch (err: any) {
+      alert("Failed to update task: " + err.message);
+      setOptimisticTasks(tasks);
+    }
+  };
+
+  // ─── Drag & Drop ──────────────────────────────────────
+
   const handleDragStart = (e: React.DragEvent, taskId: string) => {
     e.dataTransfer.setData("taskId", taskId);
     e.dataTransfer.effectAllowed = "move";
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent, colId: string) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
+    setDragOverCol(colId);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverCol(null);
   };
 
   const handleDrop = (e: React.DragEvent, newStatus: string) => {
     e.preventDefault();
+    setDragOverCol(null);
     const taskId = e.dataTransfer.getData("taskId");
     if (!taskId) return;
 
-    // Only call update if status actually changed
     const task = optimisticTasks.find((t) => t.id === taskId);
-    if (task && task.status !== newStatus) {
-      handleStatusChange(taskId, newStatus as any);
+    if (!task || task.status === newStatus) return;
+
+    const canChangeStatus =
+      accessLevel === "admin" ||
+      accessLevel === "manager" ||
+      (accessLevel === "member" && !!currentUserId && task.assigned_member === currentUserId);
+
+    if (!canChangeStatus) {
+      alert("Unauthorized: You can only update tasks assigned to you.");
+      return;
     }
+
+    handleStatusChange(taskId, newStatus);
   };
 
   return (
@@ -198,10 +161,7 @@ export function PlannerTasksKanban({
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-slate-800">Task Board</h2>
         {accessLevel !== "member" && (
-          <Button
-            onClick={openCreateModal}
-            className="bg-indigo-600 hover:bg-indigo-700"
-          >
+          <Button onClick={openCreateModal} className="bg-indigo-600 hover:bg-indigo-700">
             <Plus className="w-4 h-4 mr-1.5" /> Add Task
           </Button>
         )}
@@ -210,96 +170,35 @@ export function PlannerTasksKanban({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {COLUMNS.map((col) => {
           const colTasks = optimisticTasks.filter((t) => t.status === col.id);
+          const isDragOver = dragOverCol === col.id;
 
           return (
             <div
               key={col.id}
               className="flex flex-col h-full"
-              onDragOver={handleDragOver}
+              onDragOver={(e) => handleDragOver(e, col.id)}
+              onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, col.id)}
             >
-              <div
-                className={`px-4 py-3 rounded-t-xl border-t border-x border-slate-200 font-semibold text-sm text-slate-700 flex items-center justify-between ${col.color}`}
-              >
+              <div className={"px-4 py-3 rounded-t-xl border-t-2 border-x border-slate-200 font-semibold text-sm text-slate-700 flex items-center justify-between " + col.color + " " + col.accent}>
                 {col.label}
                 <span className="bg-white px-2 py-0.5 rounded-full text-xs text-slate-500 border border-slate-200">
                   {colTasks.length}
                 </span>
               </div>
-              <div className="bg-slate-50 border border-slate-200 border-t-0 rounded-b-xl p-3 min-h-[400px] flex flex-col gap-3 transition-colors hover:bg-slate-100/50">
+              <div className={"border border-slate-200 border-t-0 rounded-b-xl p-3 min-h-[400px] flex flex-col gap-3 transition-colors " + (isDragOver ? "bg-indigo-50/50 ring-2 ring-indigo-200 ring-inset" : "bg-slate-50/50")}>
                 {colTasks.map((task) => (
-                  <div
+                  <TaskCard
                     key={task.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, task.id)}
-                    className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow transition-shadow group relative flex flex-col h-full cursor-grab active:cursor-grabbing"
-                  >
-                    {accessLevel !== "member" && (
-                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => openEditModal(task)}
-                          className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
-                          title="Edit Task"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => confirmDelete(task.id, task.title)}
-                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
-                          title="Delete Task"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
-
-                    <h4 className="font-semibold text-slate-800 text-sm mb-1.5 pr-12">
-                      {task.title}
-                    </h4>
-                    {task.description && (
-                      <p className="text-xs text-slate-500 mb-4 line-clamp-3 leading-relaxed">
-                        {task.description}
-                      </p>
-                    )}
-
-                    <div className="mt-auto pt-4 flex flex-col gap-2.5">
-                      {task.assigned_team && (
-                        <div className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 w-fit px-2 py-1 rounded-md">
-                          <Users className="w-3 h-3" /> {task.assigned_team}
-                        </div>
-                      )}
-
-                      <div className="flex items-center justify-between">
-                        {task.due_date ? (
-                          <div className="flex items-center gap-1 text-[11px] font-medium text-slate-500">
-                            <Calendar className="w-3 h-3" />
-                            {new Date(task.due_date).toLocaleDateString(
-                              undefined,
-                              {
-                                month: "short",
-                                day: "numeric",
-                                timeZone: "UTC",
-                              },
-                            )}
-                          </div>
-                        ) : (
-                          <span />
-                        )}
-
-                        <select
-                          className="text-[11px] font-semibold border-slate-200 rounded-md py-1 pl-2 pr-6 bg-slate-50 text-slate-700 hover:bg-slate-100 focus:ring-0 focus:border-indigo-400 cursor-pointer"
-                          value={task.status}
-                          onChange={(e) =>
-                            handleStatusChange(task.id, e.target.value as any)
-                          }
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="in_progress">In Progress</option>
-                          <option value="completed">Completed</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
+                    task={task}
+                    allMembers={allMembers}
+                    accessLevel={accessLevel}
+                    currentUserId={currentUserId}
+                    onEdit={openEditModal}
+                    onDelete={confirmDelete}
+                    onClick={openDetailPanel}
+                    onDragStart={handleDragStart}
+                  />
                 ))}
               </div>
             </div>
@@ -307,106 +206,32 @@ export function PlannerTasksKanban({
         })}
       </div>
 
-      {/* Create/Edit Task Modal */}
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>
-              {editingTaskId ? "Edit Task" : "Create New Task"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            {error && (
-              <div className="p-3 rounded-lg bg-red-50 border border-red-100 flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-red-600 mt-0.5" />
-                <p className="text-xs text-red-800">{error}</p>
-              </div>
-            )}
+      {/* Create/Edit Modal */}
+      <TaskFormModal
+        open={formModalOpen}
+        onOpenChange={setFormModalOpen}
+        editingTask={editingTask}
+        plannerId={plannerId}
+        teams={teams}
+        allMembers={allMembers}
+      />
 
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-700">
-                Task Title <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Design Homepage Wireframes"
-                value={taskForm.title}
-                onChange={(e) =>
-                  setTaskForm({ ...taskForm, title: e.target.value })
-                }
-                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-500"
-              />
-            </div>
+      {/* Task Detail Panel (subtasks + comments) */}
+      <TaskDetailPanel
+        task={detailTask}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        plannerId={plannerId}
+        allMembers={allMembers}
+        currentUserId={currentUserId}
+        accessLevel={accessLevel}
+        onStatusChange={(taskId, newStatus) => {
+          handleStatusChange(taskId, newStatus);
+          setDetailTask((prev) => (prev && prev.id === taskId ? { ...prev, status: newStatus } : prev));
+        }}
+      />
 
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-700">
-                Description
-              </label>
-              <textarea
-                placeholder="Add more details here..."
-                rows={3}
-                value={taskForm.description}
-                onChange={(e) =>
-                  setTaskForm({ ...taskForm, description: e.target.value })
-                }
-                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-500 resize-none"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-700">
-                  Due Date
-                </label>
-                <input
-                  type="date"
-                  value={taskForm.due_date}
-                  onChange={(e) =>
-                    setTaskForm({ ...taskForm, due_date: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-700">
-                  Assign Team
-                </label>
-                <select
-                  value={taskForm.assigned_team}
-                  onChange={(e) =>
-                    setTaskForm({ ...taskForm, assigned_team: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="">Unassigned</option>
-                  {teams
-                    .filter((t) => t.name)
-                    .map((t, idx) => (
-                      <option key={idx} value={t.name}>
-                        {t.name}
-                      </option>
-                    ))}
-                </select>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveTask} disabled={isSubmitting}>
-              {isSubmitting
-                ? "Saving..."
-                : editingTaskId
-                  ? "Save Changes"
-                  : "Create Task"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation */}
       <DeleteConfirmModal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal((prev) => ({ ...prev, isOpen: false }))}
