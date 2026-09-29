@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { sanitizeSafeRedirect } from '@/lib/validation'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  // if "next" is in param, use it as the redirect URL
-  const next = searchParams.get('next') ?? '/dashboard'
+  // Validate and sanitize "next" parameter to prevent Open Redirect attacks
+  const rawNext = searchParams.get('next')
+  const next = sanitizeSafeRedirect(rawNext, '/dashboard')
 
   const error = searchParams.get('error')
   const errorDescription = searchParams.get('error_description')

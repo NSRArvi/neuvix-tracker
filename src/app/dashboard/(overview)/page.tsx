@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserAccessLevel } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatsGrid } from "../_components/StatsGrid";
 import { FinancialOverview } from "../_components/FinancialOverview";
@@ -12,10 +13,14 @@ export default async function OverviewPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const userEmail = user?.email ?? "admin@neuvix.io";
+  if (!user || !user.email) {
+    redirect("/auth");
+  }
+
+  const userEmail = user.email;
   const userName =
-    user?.user_metadata?.full_name ??
-    user?.user_metadata?.name ??
+    user.user_metadata?.full_name ??
+    user.user_metadata?.name ??
     userEmail.split("@")[0];
 
   const accessLevel = await getCurrentUserAccessLevel();

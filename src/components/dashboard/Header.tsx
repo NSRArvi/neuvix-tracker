@@ -3,7 +3,7 @@
 import { Search, Bell, Plus } from 'lucide-react'
 import Link from 'next/link'
 
-export default function Header({ accessLevel = 'member' }: { accessLevel?: string }) {
+export default function Header({ accessLevel = 'member' }: { accessLevel?: string | null }) {
   return (
     <header className="h-16 bg-white border-b border-slate-200/80 px-8 flex items-center justify-between sticky top-0 z-20 shadow-xs">
       <div className="flex items-center gap-4 flex-1 max-w-md">

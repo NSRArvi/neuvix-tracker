@@ -13,6 +13,10 @@ export default async function PlannerDetailsPage({
   const supabase = await createClient();
   const accessLevel = await getCurrentUserAccessLevel();
 
+  if (!accessLevel) {
+    redirect("/auth");
+  }
+
   const { data: planner } = await supabase
     .from("planners")
     .select("*, manager:team_members!manager_id(name)")

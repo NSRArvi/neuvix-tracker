@@ -9,8 +9,13 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "neuvix crm",
-  description: "neuvix crm",
+  title: "Neuvix CRM",
+  description: "Modern Agency Project & Resource Management Platform",
+  icons: {
+    icon: "/favicon.ico?v=2",
+    shortcut: "/favicon.ico?v=2",
+    apple: "/favicon.ico?v=2",
+  },
 };
 
 export default function RootLayout({

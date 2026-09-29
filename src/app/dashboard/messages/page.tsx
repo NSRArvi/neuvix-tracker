@@ -12,7 +12,7 @@ export default async function MessagesPage() {
   } = await supabase.auth.getUser();
 
   if (!user || !user.email) {
-    redirect("/login");
+    redirect("/auth");
   }
 
   // 2. Get Current Team Member Profile

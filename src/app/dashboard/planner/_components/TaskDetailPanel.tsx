@@ -320,34 +320,42 @@ export function TaskDetailPanel({
                   >
                     {st.title}
                   </span>
-                  <button
-                    onClick={() => handleDeleteSubtask(st.id)}
-                    className="p-1 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
+                  {accessLevel !== "member" && (
+                    <button
+                      onClick={() => handleDeleteSubtask(st.id)}
+                      className="p-1 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                      title="Delete subtask"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
 
-            {/* Add Subtask */}
-            <div className="flex items-center gap-2 mt-2">
-              <input
-                type="text"
-                placeholder="Add a subtask..."
-                value={newSubtaskTitle}
-                onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") handleAddSubtask(); }}
-                className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-500"
-              />
-              <button
-                onClick={handleAddSubtask}
-                disabled={!newSubtaskTitle.trim() || isAddingSubtask}
-                className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-md disabled:opacity-50 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
+            {/* Add Subtask (Admin & Manager only) */}
+            {accessLevel !== "member" && (
+              <div className="flex items-center gap-2 mt-2">
+                <input
+                  type="text"
+                  placeholder="Add a subtask..."
+                  value={newSubtaskTitle}
+                  onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleAddSubtask();
+                  }}
+                  className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-500"
+                />
+                <button
+                  onClick={handleAddSubtask}
+                  disabled={!newSubtaskTitle.trim() || isAddingSubtask}
+                  className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-md disabled:opacity-50 transition-colors cursor-pointer"
+                  title="Add subtask"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* ─── Comments / Activity ─── */}

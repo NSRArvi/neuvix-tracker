@@ -1,5 +1,6 @@
 import React from "react";
 import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 import { ProjectHeader } from "./_components/ProjectHeader";
 import { ProjectsTableClient } from "./_components/ProjectsTableClient";
 
@@ -18,6 +19,10 @@ export default async function ProjectsPage({
   
   const supabase = await createClient();
   const accessLevel = await getCurrentUserAccessLevel();
+
+  if (!accessLevel) {
+    redirect("/auth");
+  }
   
   // Get current member ID for filtering if they are a member
   let currentMemberId: string | null = null;

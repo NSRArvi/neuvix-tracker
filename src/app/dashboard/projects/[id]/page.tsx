@@ -1,7 +1,7 @@
 import React from "react";
 import { createClient } from "@/lib/supabase/server";
 import { ProjectDetailsClient } from "../_components/ProjectDetailsClient";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { getCurrentUserAccessLevel } from "@/lib/auth";
 
@@ -13,6 +13,10 @@ export default async function ProjectViewPage({
   const { id } = await params;
   const supabase = await createClient();
   const accessLevel = await getCurrentUserAccessLevel();
+
+  if (!accessLevel) {
+    redirect("/auth");
+  }
 
   const [projectRes, membersRes] = await Promise.all([
     supabase

@@ -11,6 +11,10 @@ export default async function PlannerPage() {
   const supabase = await createClient();
   const accessLevel = await getCurrentUserAccessLevel();
 
+  if (!accessLevel) {
+    redirect("/auth");
+  }
+
   // Redirect members if they shouldn't see the overall planner
   // or you can just fetch only their projects like we did in projects/page.tsx
   let currentMemberId = null;
@@ -29,7 +33,7 @@ export default async function PlannerPage() {
     .order("created_at", { ascending: false });
 
   // Filter planners if member
-  const filteredPlanners = planners ? planners.filter((planner) => {
+  const filteredPlanners = planners ? planners.filter((planner: any) => {
     if (accessLevel === 'member' && currentMemberId) {
       const isAssigned = planner.teams?.some((team: any) => team.members?.includes(currentMemberId));
       return isAssigned;

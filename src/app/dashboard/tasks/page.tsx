@@ -1,11 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserAccessLevel } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { TasksClient } from "./_components/TasksClient";
 
 export default async function TasksPage() {
   const supabase = await createClient();
   const accessLevel = await getCurrentUserAccessLevel();
   const { data: { user } } = await supabase.auth.getUser();
+
+  if (!accessLevel || !user) {
+    redirect("/auth");
+  }
 
   // Fetch all tasks with planner info
   const { data: allTasks } = await supabase
