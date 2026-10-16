@@ -24,27 +24,44 @@ interface SidebarProps {
     email: string;
     avatarUrl?: string;
   };
+  accessLevel?: "admin" | "manager" | "member" | null;
 }
 
-export default function Sidebar({ user }: SidebarProps) {
+export default function Sidebar({ user, accessLevel: propAccessLevel }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { isOpen, close } = useMobileNav();
   
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [currentLevel, setCurrentLevel] = useState<"admin" | "manager" | "member" | null>(
+    propAccessLevel || null
+  );
+
+  useEffect(() => {
+    if (propAccessLevel) {
+      setCurrentLevel(propAccessLevel);
+    }
+  }, [propAccessLevel]);
 
   useEffect(() => {
     const supabase = createClient();
     let channel: ReturnType<typeof supabase.channel> | null = null;
     let isMounted = true;
 
-    const fetchUnread = async () => {
-      // 1. Get user id from email
+    const fetchUnreadAndRole = async () => {
+      // 1. Get user and access_level from email
       const { data: member } = await supabase
         .from("team_members")
-        .select("id")
-        .eq("email", user.email)
-        .single();
+        .select("id, access_level")
+        .ilike("email", user.email.trim().toLowerCase())
+        .maybeSingle();
+
+      if (isMounted && member?.access_level) {
+        const lvl = (member.access_level || "").trim().toLowerCase();
+        setCurrentLevel(
+          lvl === "admin" || lvl === "manager" ? (lvl as "admin" | "manager") : "member"
+        );
+      }
 
       if (!member || !isMounted) return;
 
@@ -101,7 +118,7 @@ export default function Sidebar({ user }: SidebarProps) {
         .subscribe();
     };
 
-    fetchUnread();
+    fetchUnreadAndRole();
 
     return () => {
       isMounted = false;
@@ -110,7 +127,6 @@ export default function Sidebar({ user }: SidebarProps) {
       }
     };
   }, [user.email]);
-
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -150,12 +166,16 @@ export default function Sidebar({ user }: SidebarProps) {
       icon: CheckSquare,
       badge: null,
     },
-    {
-      name: "Finances",
-      href: "/dashboard/finances",
-      icon: Wallet,
-      badge: null,
-    },
+    ...(currentLevel === "admin" || currentLevel === "manager"
+      ? [
+          {
+            name: "Finances",
+            href: "/dashboard/finances",
+            icon: Wallet,
+            badge: null,
+          },
+        ]
+      : []),
     {
       name: "Teams",
       href: "/dashboard/teams",

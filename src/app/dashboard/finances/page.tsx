@@ -23,6 +23,11 @@ export default async function FinancesPage() {
     redirect("/auth");
   }
 
+  // Finances are strictly restricted to admin and manager only
+  if (accessLevel === "member") {
+    redirect("/dashboard");
+  }
+
   // 1. Fetch Projects (to compute automatic Neuvix cuts from milestones and provide project picker)
   const { data: allProjects } = await supabase
     .from("projects")

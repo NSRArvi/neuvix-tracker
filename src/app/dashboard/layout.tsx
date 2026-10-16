@@ -39,6 +39,7 @@ export default async function DashboardLayout({
             email: userEmail,
             avatarUrl,
           }}
+          accessLevel={accessLevel}
         />
 
         {/* Right Content Area */}

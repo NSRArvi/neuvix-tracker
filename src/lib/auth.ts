@@ -25,21 +25,21 @@ export async function getCurrentUserAccessLevel(): Promise<AccessLevel | null> {
   
   if (!user || !user.email) return null;
   
+  const cleanEmail = user.email.trim().toLowerCase();
+
   const { data } = await supabase
     .from('team_members')
     .select('access_level')
-    .eq('email', user.email)
-    .single();
+    .ilike('email', cleanEmail)
+    .maybeSingle();
     
-  if (data?.access_level === 'admin' || data?.access_level === 'manager') {
-    return data.access_level;
+  const level = (data?.access_level || '').trim().toLowerCase();
+  if (level === 'admin' || level === 'manager') {
+    return level as AccessLevel;
   }
   
-  if (data?.access_level === 'member') {
-    return 'member';
-  }
-  
-  return null;
+  // Default any registered or authenticated user without admin/manager role to 'member'
+  return 'member';
 }
 
 /**

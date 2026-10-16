@@ -33,11 +33,12 @@ export default async function OverviewPage() {
 
   let memberId: string | null = null;
   if (accessLevel === "member" && user?.email) {
+    const cleanEmail = user.email.trim().toLowerCase();
     const { data: member } = await supabase
       .from("team_members")
       .select("id")
-      .eq("email", user.email)
-      .single();
+      .ilike("email", cleanEmail)
+      .maybeSingle();
 
     if (member) {
       memberId = member.id;
@@ -102,8 +103,10 @@ export default async function OverviewPage() {
       {/* 2. FINANCIAL / VALUE METRICS & CHART */}
       <FinancialOverview projects={allProjects || []} />
 
-      {/* 3. PROFIT & PARTNERS DISTRIBUTION (Sajjad, Mamun, Arvi, Neuvix & Product Cost) */}
-      <ProfitDistribution projects={allProjects || []} />
+      {/* 3. PROFIT & PARTNERS DISTRIBUTION (Sajjad, Mamun, Arvi, Neuvix & Product Cost) - Admin & Manager only */}
+      {(accessLevel === "admin" || accessLevel === "manager") && (
+        <ProfitDistribution projects={allProjects || []} />
+      )}
 
       {/* 4. RECENT ACTIVE PROJECTS OVERVIEW */}
       <RecentProjects projects={allProjects || []} />
