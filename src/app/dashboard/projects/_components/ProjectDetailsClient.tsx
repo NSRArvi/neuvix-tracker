@@ -119,9 +119,9 @@ const [paymentModal, setPaymentModal] = useState<{
   const remainingBudget = Math.max(0, totalBudget - completedMilestonesAmount);
 
   return (
-    <div className="max-w-5xl mx-auto pb-16 pt-8">
+    <div className="max-w-5xl mx-auto pb-16 pt-4 sm:pt-8 px-2 sm:px-0">
       {/* Header */}
-      <div className="mb-8 flex items-start justify-between">
+      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <Link
             href="/dashboard/projects"
@@ -129,8 +129,8 @@ const [paymentModal, setPaymentModal] = useState<{
           >
             <ArrowLeft className="w-4 h-4" /> Back to Projects
           </Link>
-          <h1 className="text-3xl font-bold text-slate-900">{project.name}</h1>
-          <div className="flex items-center gap-3 mt-2 flex-wrap">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">{project.name}</h1>
+          <div className="flex items-center gap-2 sm:gap-3 mt-2 flex-wrap">
             {project.network && (
               <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
                 <Globe className="w-3 h-3" /> {project.network}
@@ -144,7 +144,7 @@ const [paymentModal, setPaymentModal] = useState<{
         {accessLevel !== 'member' && (
           <Link
             href={`/dashboard/projects/${project.id}/edit`}
-            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors shrink-0"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors shrink-0 self-start sm:self-auto"
           >
             <Edit2 className="w-4 h-4" /> Edit Project
           </Link>
@@ -289,26 +289,37 @@ const [paymentModal, setPaymentModal] = useState<{
                 const amount = (project.budget * (parseFloat(m.payment_percent) || 0) / 100).toFixed(2);
                 const cfg = statusConfig[m.status] ?? statusConfig["Planning"];
                 return (
-                  <div key={i} className="px-6 py-4 flex items-start gap-4">
-                    <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
-                      {i + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="text-sm font-semibold text-slate-900">{m.name || `Milestone ${i + 1}`}</span>
-                        <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${cfg.classes}`}>
-                          {cfg.icon} {cfg.label}
-                        </span>
+                    <div key={i} className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                      <div className="flex items-center gap-3 sm:block w-full sm:w-auto">
+                        <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                          {i + 1}
+                        </div>
+                        <div className="sm:hidden flex-1 flex items-center justify-between">
+                          <span className="text-sm font-semibold text-slate-900">{m.name || `Milestone ${i + 1}`}</span>
+                          <span className="text-base font-bold text-emerald-600">${amount}</span>
+                        </div>
                       </div>
-                      {m.description && (
-                        <div className="text-xs text-slate-500 mt-1 mb-2 whitespace-pre-wrap">{m.description}</div>
-                      )}
-                      <div className="flex items-center gap-4 text-xs text-slate-500 mb-3">
-                        {m.expected_complete_date && (
-                          <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {m.expected_complete_date}</span>
+                      <div className="flex-1 min-w-0 w-full">
+                        <div className="hidden sm:flex items-center gap-2 flex-wrap mb-1">
+                          <span className="text-sm font-semibold text-slate-900">{m.name || `Milestone ${i + 1}`}</span>
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${cfg.classes}`}>
+                            {cfg.icon} {cfg.label}
+                          </span>
+                        </div>
+                        <div className="sm:hidden mb-2">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${cfg.classes}`}>
+                            {cfg.icon} {cfg.label}
+                          </span>
+                        </div>
+                        {m.description && (
+                          <div className="text-xs text-slate-500 mt-1 mb-2 whitespace-pre-wrap">{m.description}</div>
                         )}
-                        <span>{m.payment_percent}% of budget</span>
-                      </div>
+                        <div className="flex items-center gap-3 sm:gap-4 text-xs text-slate-500 mb-3 flex-wrap">
+                          {m.expected_complete_date && (
+                            <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {m.expected_complete_date}</span>
+                          )}
+                          <span>{m.payment_percent}% of budget</span>
+                        </div>
 
                       {(project.teams ?? []).length > 0 && parseFloat(m.payment_percent) > 0 && (
                         <div className="mt-3 p-3 bg-slate-50/80 rounded-lg border border-slate-100">
@@ -401,7 +412,7 @@ const [paymentModal, setPaymentModal] = useState<{
                         </div>
                       )}
                     </div>
-                    <div className="text-right shrink-0">
+                    <div className="text-right shrink-0 hidden sm:block">
                       <p className="text-base font-bold text-emerald-600">${amount}</p>
                     </div>
                   </div>

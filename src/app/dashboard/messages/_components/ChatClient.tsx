@@ -247,10 +247,14 @@ export function ChatClient({ currentUser, members, initialMessages }: ChatClient
   };
 
   return (
-    <div className="flex w-full h-full overflow-hidden">
+    <div className="flex w-full h-full overflow-hidden relative">
       {/* Sidebar - Users List */}
-      <div className="w-full md:w-80 border-r border-slate-200 bg-slate-50/50 flex flex-col h-full shrink-0 min-h-0">
-        <div className="p-4 border-b border-slate-200">
+      <div
+        className={`w-full md:w-72 lg:w-80 border-r border-slate-200 bg-slate-50/50 flex flex-col h-full shrink-0 min-h-0 ${
+          activeMemberId ? "hidden md:flex" : "flex"
+        }`}
+      >
+        <div className="p-3 sm:p-4 border-b border-slate-200">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
@@ -278,12 +282,12 @@ export function ChatClient({ currentUser, members, initialMessages }: ChatClient
                   <li key={member.id}>
                     <button
                       onClick={() => handleSelectMember(member.id)}
-                      className={`w-full flex items-center gap-3 p-4 text-left transition-colors hover:bg-slate-100 ${
+                      className={`w-full flex items-center gap-3 p-3.5 sm:p-4 text-left transition-colors hover:bg-slate-100 cursor-pointer ${
                         isActive ? "bg-indigo-50 hover:bg-indigo-50" : ""
                       }`}
                     >
                       <div className="relative shrink-0">
-                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600">
+                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-semibold text-sm">
                           {member.name.charAt(0).toUpperCase()}
                         </div>
                         {onlineUsers.includes(member.id) && (
@@ -319,26 +323,27 @@ export function ChatClient({ currentUser, members, initialMessages }: ChatClient
         {activeMember ? (
           <>
             {/* Chat Header */}
-            <div className="h-16 border-b border-slate-200 px-6 flex items-center justify-between shrink-0 bg-white">
-              <div className="flex items-center gap-3">
+            <div className="h-16 border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between shrink-0 bg-white">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <button 
                   onClick={() => { setActiveMemberId(null); activeMemberRef.current = null; }}
-                  className="md:hidden text-slate-500 mr-2"
+                  className="md:hidden flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 p-1.5 -ml-1 rounded-lg hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
+                  aria-label="Back to contacts list"
                 >
-                  &larr; Back
+                  &larr; <span className="hidden xs:inline">Back</span>
                 </button>
-                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold shrink-0">
+                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold shrink-0 text-xs">
                   {activeMember.name.charAt(0).toUpperCase()}
                 </div>
-                <div>
-                  <h2 className="text-sm font-bold text-slate-900">{activeMember.name}</h2>
-                  <p className="text-xs text-slate-500">{getMemberRoleName(activeMember)}</p>
+                <div className="min-w-0">
+                  <h2 className="text-sm font-bold text-slate-900 truncate">{activeMember.name}</h2>
+                  <p className="text-xs text-slate-500 truncate">{getMemberRoleName(activeMember)}</p>
                 </div>
               </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0 bg-slate-50/30">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 min-h-0 bg-slate-50/30">
               {activeMessages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-3">
                   <UserCircle2 className="w-12 h-12 text-slate-200" />

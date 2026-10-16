@@ -10,9 +10,9 @@ export function ProjectHeader({ isLoading = false, accessLevel = 'member' }: { i
       title="Projects"
       subtitle="Manage your ongoing and completed projects."
       action={
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
           {isLoading ? (
-            <div className="relative">
+            <div className="relative flex-1 sm:flex-none">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input 
                 disabled
@@ -21,16 +21,18 @@ export function ProjectHeader({ isLoading = false, accessLevel = 'member' }: { i
               />
             </div>
           ) : (
-            <Suspense fallback={<div className="w-full sm:w-64 h-9 bg-slate-100 animate-pulse rounded-lg" />}>
-              <SearchInput />
-            </Suspense>
+            <div className="flex-1 sm:flex-none">
+              <Suspense fallback={<div className="w-full sm:w-64 h-9 bg-slate-100 animate-pulse rounded-lg" />}>
+                <SearchInput />
+              </Suspense>
+            </div>
           )}
           
           {accessLevel !== 'member' && (
             isLoading ? (
               <button
                 disabled
-                className="inline-flex items-center gap-x-2 rounded-lg bg-indigo-600/50 px-4 py-2 text-sm font-semibold text-white shadow-sm shrink-0 cursor-not-allowed"
+                className="inline-flex items-center justify-center gap-x-2 rounded-lg bg-indigo-600/50 px-4 py-2 text-sm font-semibold text-white shadow-sm shrink-0 cursor-not-allowed"
               >
                 <Plus className="-ml-0.5 h-4 w-4" />
                 New Project
@@ -38,7 +40,7 @@ export function ProjectHeader({ isLoading = false, accessLevel = 'member' }: { i
             ) : (
               <Link
                 href="/dashboard/projects/new"
-                className="inline-flex items-center gap-x-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors shrink-0"
+                className="inline-flex items-center justify-center gap-x-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors shrink-0"
               >
                 <Plus className="-ml-0.5 h-4 w-4" />
                 New Project

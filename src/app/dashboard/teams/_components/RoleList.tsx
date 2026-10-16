@@ -115,7 +115,7 @@ export function RoleList({ roles }: { roles: Role[] }) {
         isConfirm={alertDialog.isConfirm}
       />
 
-      <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+      <div className="p-4 sm:p-6 border-b border-slate-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Shield className="w-5 h-5 text-indigo-500" />
           <h2 className="text-lg font-bold text-slate-800">Roles</h2>

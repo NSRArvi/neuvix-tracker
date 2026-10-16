@@ -112,7 +112,7 @@ export function ProjectsTableClient({
         isConfirm={alertDialog.isConfirm}
       />
 
-      <Table>
+      <Table className="min-w-[750px]">
         <TableHeader className="bg-slate-50/80">
           <TableRow>
             <TableHead className="uppercase text-xs font-semibold tracking-wider text-slate-500">

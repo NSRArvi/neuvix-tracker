@@ -196,18 +196,18 @@ export function TaskDetailPanel({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px] max-h-[85vh] flex flex-col p-0 gap-0">
+      <DialogContent className="w-full sm:max-w-[560px] max-h-[90vh] flex flex-col p-0 gap-0">
         {/* Header */}
-        <div className="px-6 pt-6 pb-4 border-b border-slate-100">
+        <div className="px-4 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-slate-100">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-slate-900 leading-snug pr-8">
+            <DialogTitle className="text-base sm:text-lg font-bold text-slate-900 leading-snug pr-8">
               {task.title}
             </DialogTitle>
           </DialogHeader>
 
           {/* Meta Row: Priority, Labels, Status Selector */}
           <div className="flex flex-wrap items-center justify-between gap-2 mt-3">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <span className={"px-2 py-0.5 rounded-full text-[10px] font-bold " + priorityCfg.style}>
                 {priorityCfg.label}
               </span>
@@ -244,16 +244,16 @@ export function TaskDetailPanel({
           </div>
 
           {/* Info Grid */}
-          <div className="grid grid-cols-3 gap-3 mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 mt-4">
             {task.assigned_team && (
               <div className="flex items-center gap-1.5 text-xs text-slate-600">
-                <Users className="w-3.5 h-3.5 text-slate-400" />
+                <Users className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                 <span className="truncate">{task.assigned_team}</span>
               </div>
             )}
             {memberName && (
               <div className="flex items-center gap-1.5 text-xs text-slate-600">
-                <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 text-[9px] font-bold flex items-center justify-center">
+                <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 text-[9px] font-bold flex items-center justify-center shrink-0">
                   {memberName.charAt(0).toUpperCase()}
                 </div>
                 <span className="truncate">{memberName}</span>
@@ -261,19 +261,19 @@ export function TaskDetailPanel({
             )}
             {task.due_date && (
               <div className="flex items-center gap-1.5 text-xs text-slate-600">
-                <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                {new Date(task.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}
+                <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span className="truncate">{new Date(task.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}</span>
               </div>
             )}
           </div>
 
           {task.description && (
-            <p className="text-sm text-slate-600 mt-4 leading-relaxed">{task.description}</p>
+            <p className="text-xs sm:text-sm text-slate-600 mt-4 leading-relaxed">{task.description}</p>
           )}
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6 min-h-0">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-6 min-h-0">
           {/* ─── Subtasks / Checklist ─── */}
           <div>
             <div className="flex items-center justify-between mb-3">

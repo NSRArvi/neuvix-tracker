@@ -65,21 +65,21 @@ export function TasksClient({ initialTasks, accessLevel }: { initialTasks: any[]
         <div className="space-y-8">
           {Object.entries(groupedTasks).map(([projectName, group]) => (
             <div key={projectName} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-              <div className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-indigo-500 block" />
-                  {projectName}
+              <div className="bg-slate-50 border-b border-slate-200 px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <h2 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-indigo-500 block shrink-0" />
+                  <span className="truncate">{projectName}</span>
                 </h2>
                 <Link 
                   href={`/dashboard/planner/${group.plannerId}`}
-                  className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 hover:underline"
+                  className="text-xs sm:text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 hover:underline self-start sm:self-auto"
                 >
                   View Planner <ArrowRight className="w-3 h-3" />
                 </Link>
               </div>
 
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="p-4 sm:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
                   {group.tasks.map(task => (
                     <div key={task.id} className="border border-slate-200 rounded-lg p-4 flex flex-col group hover:border-indigo-200 hover:shadow-sm transition-all">
                       <div className="flex items-start justify-between mb-2">

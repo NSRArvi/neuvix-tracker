@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatsGrid } from "../_components/StatsGrid";
 import { FinancialOverview } from "../_components/FinancialOverview";
+import { ProfitDistribution } from "../_components/ProfitDistribution";
 import { RecentProjects } from "../_components/RecentProjects";
 
 export default async function OverviewPage() {
@@ -101,7 +102,10 @@ export default async function OverviewPage() {
       {/* 2. FINANCIAL / VALUE METRICS & CHART */}
       <FinancialOverview projects={allProjects || []} />
 
-      {/* 3. RECENT ACTIVE PROJECTS OVERVIEW */}
+      {/* 3. PROFIT & PARTNERS DISTRIBUTION (Sajjad, Mamun, Arvi, Neuvix & Product Cost) */}
+      <ProfitDistribution projects={allProjects || []} />
+
+      {/* 4. RECENT ACTIVE PROJECTS OVERVIEW */}
       <RecentProjects projects={allProjects || []} />
     </div>
   );

@@ -65,15 +65,15 @@ export function FinancialOverview({ projects }: FinancialOverviewProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Chart: Onboarding projects according to months */}
-      <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs">
-        <div className="flex items-center justify-between mb-6">
+      <div className="lg:col-span-2 bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/80 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
             <h2 className="text-base font-bold text-slate-900">Project Onboarding ({currentYear})</h2>
             <p className="text-xs text-slate-400 mt-0.5">
               Monthly volume of new client projects initiated this year
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-start sm:self-auto">
             <div className="flex items-center gap-1.5 text-xs text-slate-500">
               <span className="w-2.5 h-2.5 rounded-sm bg-indigo-600" />
               <span>Onboarded Projects</span>
@@ -82,47 +82,49 @@ export function FinancialOverview({ projects }: FinancialOverviewProps) {
         </div>
 
         {/* Bar Chart Graphics */}
-        <div className="h-60 flex items-end justify-between gap-2 pt-6 pb-2 border-b border-slate-100">
-          {monthlyOnboardingData.map((item) => (
-            <div
-              key={item.month}
-              className="flex-1 flex flex-col items-center gap-2 h-full justify-end group"
-            >
-              <div className="text-[10px] font-semibold text-slate-400 group-hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                {item.count > 0 ? item.count : ""}
-              </div>
+        <div className="overflow-x-auto pb-2 -mx-2 px-2 sm:mx-0 sm:px-0">
+          <div className="h-60 min-w-[340px] flex items-end justify-between gap-1.5 sm:gap-2 pt-6 pb-2 border-b border-slate-100">
+            {monthlyOnboardingData.map((item) => (
               <div
-                style={{ height: item.height }}
-                className={`w-full max-w-[28px] rounded-t-lg transition-all duration-300 relative cursor-pointer ${
-                  item.count > 0 ? "bg-slate-200 group-hover:bg-indigo-600" : "bg-slate-50"
-                }`}
+                key={item.month}
+                className="flex-1 flex flex-col items-center gap-2 h-full justify-end group"
               >
-                {item.count === peakMonthValue && peakMonthValue > 0 && (
-                  <div className="absolute inset-0 bg-indigo-600 rounded-t-lg shadow-sm shadow-indigo-500/50" />
-                )}
+                <div className="text-[10px] font-semibold text-slate-400 group-hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {item.count > 0 ? item.count : ""}
+                </div>
+                <div
+                  style={{ height: item.height }}
+                  className={`w-full max-w-[28px] rounded-t-lg transition-all duration-300 relative cursor-pointer ${
+                    item.count > 0 ? "bg-slate-200 group-hover:bg-indigo-600" : "bg-slate-50"
+                  }`}
+                >
+                  {item.count === peakMonthValue && peakMonthValue > 0 && (
+                    <div className="absolute inset-0 bg-indigo-600 rounded-t-lg shadow-sm shadow-indigo-500/50" />
+                  )}
+                </div>
+                <span className="text-[10px] sm:text-[11px] font-medium text-slate-500 mt-1">
+                  {item.month}
+                </span>
               </div>
-              <span className="text-[11px] font-medium text-slate-500 mt-1">
-                {item.month}
-              </span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Chart footer stats */}
-        <div className="grid grid-cols-3 gap-4 pt-4 text-center">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-4 text-center">
           <div>
-            <span className="text-[11px] text-slate-400 block">Total Onboarded</span>
-            <span className="text-sm font-bold text-slate-800">{projects.length} Projects</span>
+            <span className="text-[10px] sm:text-[11px] text-slate-400 block truncate">Total Onboarded</span>
+            <span className="text-xs sm:text-sm font-bold text-slate-800">{projects.length} Projects</span>
           </div>
           <div>
-            <span className="text-[11px] text-slate-400 block">Peak Month</span>
-            <span className="text-sm font-bold text-indigo-600">
+            <span className="text-[10px] sm:text-[11px] text-slate-400 block truncate">Peak Month</span>
+            <span className="text-xs sm:text-sm font-bold text-indigo-600 truncate block">
               {peakMonthName} ({peakMonthValue})
             </span>
           </div>
           <div>
-            <span className="text-[11px] text-slate-400 block">Avg Monthly Rate</span>
-            <span className="text-sm font-bold text-slate-800">{avgMonthlyRate} / mo</span>
+            <span className="text-[10px] sm:text-[11px] text-slate-400 block truncate">Avg Rate</span>
+            <span className="text-xs sm:text-sm font-bold text-slate-800">{avgMonthlyRate} / mo</span>
           </div>
         </div>
       </div>

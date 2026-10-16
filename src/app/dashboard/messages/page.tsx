@@ -48,7 +48,7 @@ export default async function MessagesPage() {
     .order("created_at", { ascending: true });
 
   return (
-    <div className="h-[calc(100vh-128px)] w-full flex flex-col border border-slate-200 rounded-2xl shadow-sm overflow-hidden bg-white">
+    <div className="h-[calc(100dvh-115px)] sm:h-[calc(100dvh-125px)] lg:h-[calc(100vh-128px)] w-full flex flex-col border border-slate-200 rounded-xl sm:rounded-2xl shadow-xs overflow-hidden bg-white">
       <ChatClient 
         currentUser={currentUserMember} 
         members={teamMembers || []} 

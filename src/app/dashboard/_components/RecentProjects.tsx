@@ -19,7 +19,7 @@ export function RecentProjects({ projects }: RecentProjectsProps) {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-      <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+      <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h3 className="text-base font-bold text-slate-900">Recent Projects</h3>
           <p className="text-xs text-slate-400 mt-0.5">
@@ -28,7 +28,7 @@ export function RecentProjects({ projects }: RecentProjectsProps) {
         </div>
         <Link 
           href="/dashboard/projects"
-          className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer transition-colors"
+          className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer transition-colors self-start sm:self-auto"
         >
           <span>View all projects</span>
           <ChevronRight className="w-3.5 h-3.5" />
@@ -36,13 +36,13 @@ export function RecentProjects({ projects }: RecentProjectsProps) {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full min-w-[600px] text-left border-collapse">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50/50 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-              <th className="py-3 px-6">Project & Client</th>
-              <th className="py-3 px-6">Expected Delivery</th>
-              <th className="py-3 px-6">Contract Value</th>
-              <th className="py-3 px-6">Manager</th>
+              <th className="py-3 px-4 sm:px-6">Project & Client</th>
+              <th className="py-3 px-4 sm:px-6">Expected Delivery</th>
+              <th className="py-3 px-4 sm:px-6">Contract Value</th>
+              <th className="py-3 px-4 sm:px-6">Manager</th>
               <th className="py-3 px-4 text-right">Action</th>
             </tr>
           </thead>

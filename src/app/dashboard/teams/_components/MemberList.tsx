@@ -218,46 +218,24 @@ export function MemberList({
         isConfirm={alertDialog.isConfirm}
       />
 
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <PageHeader
-          title="Teams & Members"
-          subtitle="Manage your organization's teams, roles, and staff members."
+          title={activeTab === "auth" ? "Auth Users" : "Team Members"}
+          subtitle={
+            activeTab === "auth"
+              ? "View registered accounts and assign them to teams."
+              : "Manage your organization's staff members, contact info, and roles."
+          }
           action={
-            <div className="flex flex-col md:flex-row items-center gap-4">
-              {currentUserAccessLevel !== "member" && (
-                <div className="flex bg-slate-100 p-1 rounded-lg">
-                  <button
-                    onClick={() => setActiveTab("members")}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                      activeTab === "members"
-                        ? "bg-white text-slate-900 shadow-sm"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    Team Members
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("auth")}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                      activeTab === "auth"
-                        ? "bg-white text-slate-900 shadow-sm"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    Auth Users
-                  </button>
-                </div>
-              )}
-              {activeTab === "members" &&
-                currentUserAccessLevel !== "member" && (
-                  <Button
-                    className="bg-indigo-600 hover:bg-indigo-500"
-                    onClick={() => openNew()}
-                  >
-                    <Plus className="w-4 h-4 mr-2" /> Add Member
-                  </Button>
-                )}
-            </div>
+            activeTab === "members" &&
+            currentUserAccessLevel !== "member" ? (
+              <Button
+                className="bg-indigo-600 hover:bg-indigo-500 w-full sm:w-auto"
+                onClick={() => openNew()}
+              >
+                <Plus className="w-4 h-4 mr-2" /> Add Member
+              </Button>
+            ) : null
           }
         />
       </div>
@@ -442,25 +420,25 @@ export function MemberList({
         </DialogContent>
       </Dialog>
 
-      <div className="overflow-x-auto px-6">
+      <div className="overflow-x-auto px-4 sm:px-6">
         {activeTab === "members" || currentUserAccessLevel === "member" ? (
-          <Table>
+          <Table className="min-w-[700px]">
             <TableHeader className="bg-slate-50 border-b border-slate-200">
               <TableRow>
-                <TableHead className="py-4 px-6 font-semibold text-slate-700">
+                <TableHead className="py-4 px-4 sm:px-6 font-semibold text-slate-700">
                   Member
                 </TableHead>
-                <TableHead className="py-4 px-6 font-semibold text-slate-700">
+                <TableHead className="py-4 px-4 sm:px-6 font-semibold text-slate-700">
                   Contact
                 </TableHead>
-                <TableHead className="py-4 px-6 font-semibold text-slate-700">
+                <TableHead className="py-4 px-4 sm:px-6 font-semibold text-slate-700">
                   Team / Role
                 </TableHead>
-                <TableHead className="py-4 px-6 font-semibold text-slate-700">
+                <TableHead className="py-4 px-4 sm:px-6 font-semibold text-slate-700">
                   Access
                 </TableHead>
                 {showActionsColumn && (
-                  <TableHead className="py-4 px-6 text-right font-semibold text-slate-700">
+                  <TableHead className="py-4 px-4 sm:px-6 text-right font-semibold text-slate-700">
                     Actions
                   </TableHead>
                 )}
@@ -563,16 +541,16 @@ export function MemberList({
             </TableBody>
           </Table>
         ) : (
-          <Table>
+          <Table className="min-w-[500px]">
             <TableHeader className="bg-slate-50 border-b border-slate-200">
               <TableRow>
-                <TableHead className="py-4 px-6 font-semibold text-slate-700">
+                <TableHead className="py-4 px-4 sm:px-6 font-semibold text-slate-700">
                   Name
                 </TableHead>
-                <TableHead className="py-4 px-6 font-semibold text-slate-700">
+                <TableHead className="py-4 px-4 sm:px-6 font-semibold text-slate-700">
                   Email
                 </TableHead>
-                <TableHead className="py-4 px-6 font-semibold text-slate-700 text-right">
+                <TableHead className="py-4 px-4 sm:px-6 font-semibold text-slate-700 text-right">
                   Actions
                 </TableHead>
               </TableRow>

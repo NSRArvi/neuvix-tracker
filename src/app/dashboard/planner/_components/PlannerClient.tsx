@@ -34,7 +34,7 @@ export function PlannerClient({ planners, accessLevel }: PlannerClientProps) {
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-      <Table>
+      <Table className="min-w-[650px]">
         <TableHeader className="bg-slate-50/80">
           <TableRow>
             <TableHead className="uppercase text-xs font-semibold tracking-wider text-slate-500 w-[200px]">Project Name</TableHead>

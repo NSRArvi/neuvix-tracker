@@ -68,7 +68,7 @@ export function PlannerDetailsClient({
   };
 
   return (
-    <div className="mx-6 pb-16">
+    <div className="mx-0 sm:mx-2 lg:mx-6 pb-16">
       <Link
         href="/dashboard/planner"
         className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 mb-6 transition-colors"
@@ -76,9 +76,9 @@ export function PlannerDetailsClient({
         <ArrowLeft className="w-4 h-4" /> Back to Planner List
       </Link>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
         {/* LEFT SIDE  */}
-        <div className="md:col-span-3 space-y-6">
+        <div className="lg:col-span-4 xl:col-span-3 space-y-6">
           {/* project informations  */}
           <div className="bg-white rounded-xl border border-slate-200 p-6">
             <h1 className="text-2xl font-bold text-slate-900 mb-6 leading-tight">
@@ -313,7 +313,7 @@ export function PlannerDetailsClient({
         </div>
 
         {/* RIGHT SIDE */}
-        <div className="md:col-span-9">
+        <div className="lg:col-span-8 xl:col-span-9">
           <PlannerTasksKanban
             plannerId={planner.id}
             tasks={tasks}
